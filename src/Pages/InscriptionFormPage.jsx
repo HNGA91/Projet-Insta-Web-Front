@@ -1,11 +1,11 @@
-import Footer from './Composants/Footer';
-import Header from './Composants/Header';
-import MenuLateral1 from './Composants/MenuLateral1';
-import MenuLateral2 from './Composants/MenuLateral2';
-import './Style/Style.css'
-import { useState , useEffect , useRef } from 'react';
+import Header from "../Composants/Menu/Header.jsx";
+import Footer from "../Composants/Menu/Footer.jsx";
+import MenuLateral1 from "../Composants/Menu/MenuLateral1.jsx";
+import MenuLateral2 from "../Composants/Menu/MenuLateral2.jsx";
+import "../Styles/Style.css";
+import { useState, useEffect, useRef } from "react";
 
-function Inscription () {
+const InscriptionFormPage = () => {
 	const [formData, setFormData] = useState({
 		email: "",
 		password: "",
@@ -84,16 +84,11 @@ function Inscription () {
 			[name]: value,
 		}));
 
-		const passwordRegex =
-			/^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{12,}$/;
+		const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{12,}$/;
 		if (value.trim() === "") {
-			setPasswordError(
-				'⚠️ Le champ "Mot de passe" ne peut pas etre vide'
-			);
+			setPasswordError('⚠️ Le champ "Mot de passe" ne peut pas etre vide');
 		} else if (value.length < 12) {
-			setPasswordError(
-				'⚠️ Le champ "Mot de passe" doit etre supérieur ou égale à 12'
-			);
+			setPasswordError('⚠️ Le champ "Mot de passe" doit etre supérieur ou égale à 12');
 		} else if (!passwordRegex.test(value.trim())) {
 			setPasswordError("⚠️ Le mot de passe est invalide");
 		} else {
@@ -108,16 +103,11 @@ function Inscription () {
 			[name]: value,
 		}));
 
-		const confirmPwRegex =
-			/^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{12,}$/;
+		const confirmPwRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{12,}$/;
 		if (value.trim() === "") {
-			setconfirmPwErreur(
-				'⚠️ Le champ "Confirmation de mot de passe" ne peut pas etre vide'
-			);
+			setconfirmPwErreur('⚠️ Le champ "Confirmation de mot de passe" ne peut pas etre vide');
 		} else if (value.length < 12) {
-			setconfirmPwErreur(
-				'⚠️ Le champ "Confirmation de mot de passe" doit etre supérieur ou égale à 12'
-			);
+			setconfirmPwErreur('⚠️ Le champ "Confirmation de mot de passe" doit etre supérieur ou égale à 12');
 		} else if (!confirmPwRegex.test(value.trim())) {
 			setconfirmPwErreur("⚠️ Le mot de passe est invalide");
 		} else {
@@ -132,8 +122,7 @@ function Inscription () {
 		let isValid = true;
 
 		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-		const passwordRegex =
-			/^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{12,}$/;
+		const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{12,}$/;
 
 		// Email
 		if (formData.email.trim() === "") {
@@ -148,14 +137,10 @@ function Inscription () {
 
 		// Mot de passe
 		if (formData.password.trim() === "") {
-			setPasswordError(
-				'⚠️ Le champ "Mot de passe" ne peut pas être vide'
-			);
+			setPasswordError('⚠️ Le champ "Mot de passe" ne peut pas être vide');
 			isValid = false;
 		} else if (formData.password.length < 12) {
-			setPasswordError(
-				'⚠️ Le champ "Mot de passe" doit etre supérieur ou égale à 12'
-			);
+			setPasswordError('⚠️ Le champ "Mot de passe" doit etre supérieur ou égale à 12');
 			isValid = false;
 		} else if (!passwordRegex.test(formData.password.trim())) {
 			setPasswordError("⚠️ Le mot de passe est invalide");
@@ -165,14 +150,10 @@ function Inscription () {
 		}
 		// Confirmation
 		if (formData.confirmPw.trim() === "") {
-			setconfirmPwErreur(
-				'⚠️ Le champ "Confirmation de mot de passe" ne peut pas être vide'
-			);
+			setconfirmPwErreur('⚠️ Le champ "Confirmation de mot de passe" ne peut pas être vide');
 			isValid = false;
 		} else if (formData.confirmPw.length < 12) {
-			setconfirmPwErreur(
-				'⚠️ Le champ "Confirmation de mot de passe" doit etre supérieur ou égale à 12'
-			);
+			setconfirmPwErreur('⚠️ Le champ "Confirmation de mot de passe" doit etre supérieur ou égale à 12');
 			isValid = false;
 		} else if (formData.password !== formData.confirmPw) {
 			setconfirmPwErreur("⚠️ Les mots de passe ne correspondent pas");
@@ -199,10 +180,7 @@ function Inscription () {
 				<main>
 					<div className="content-section">
 						<h2>Page d'inscription</h2>
-						<p>
-							Veuillez remplir le champs afin de compléter votre
-							inscription
-						</p>
+						<p>Veuillez remplir le champs afin de compléter votre inscription</p>
 						<form className="form" onSubmit={handleSubmit}>
 							<label className="form-label">Adresse mail:</label>
 							<br />
@@ -216,10 +194,7 @@ function Inscription () {
 								placeholder="Veuillez entrer votre adresse mail"
 							/>
 							{erreur && (
-								<p
-									className="error-message"
-									style={{ color: "red" }}
-								>
+								<p className="error-message" style={{ color: "red" }}>
 									{erreur}
 								</p>
 							)}
@@ -237,19 +212,14 @@ function Inscription () {
 								placeholder="Veuillez entrer votre mot de passe"
 							/>
 							{passworderreur && (
-								<p
-									className="error-message"
-									style={{ color: "red" }}
-								>
+								<p className="error-message" style={{ color: "red" }}>
 									{passworderreur}
 								</p>
 							)}
 							{console.log(formData.password)}
 							<br />
 							<br />
-							<label className="form-label">
-								Confirmation du mot de passe:
-							</label>
+							<label className="form-label">Confirmation du mot de passe:</label>
 							<br />
 							<input
 								onChange={handleconfirmPwChange}
@@ -260,10 +230,7 @@ function Inscription () {
 								placeholder="Veuillez entrer votre mot de passe"
 							/>
 							{confirmPwerreur && (
-								<p
-									className="error-message"
-									style={{ color: "red" }}
-								>
+								<p className="error-message" style={{ color: "red" }}>
 									{confirmPwerreur}
 								</p>
 							)}
@@ -283,4 +250,4 @@ function Inscription () {
 	);
 }
 
-export default Inscription;
+export default InscriptionFormPage;

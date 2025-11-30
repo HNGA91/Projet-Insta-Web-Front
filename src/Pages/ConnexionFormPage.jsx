@@ -1,11 +1,11 @@
-import './Style/Style.css'
-import Header from './Composants/Header.jsx'
-import Footer from './Composants/Footer.jsx'
+import '../Styles/Style.css'
+import Header from '../Composants/Menu/Header.jsx'
+import Footer from '../Composants/Menu/Footer.jsx'
 import { useState , useEffect , useRef } from 'react';
-import MenuLateral1 from './Composants/MenuLateral1.jsx';
-import MenuLateral2 from './Composants/MenuLateral2.jsx';
+import MenuLateral1 from '../Composants/Menu/MenuLateral1.jsx';
+import MenuLateral2 from '../Composants/Menu/MenuLateral2.jsx';
 
-function Authentification () {
+const ConnexionFormPage = () => {
 	// definir un usestate comme objet
 	const [formData, setFormData] = useState({ email: "", password: "" });
 	const [errorEmail, setEmailError] = useState("");
@@ -195,4 +195,4 @@ function Authentification () {
 	);
 }
 
-export default Authentification;
+export default ConnexionFormPage;
