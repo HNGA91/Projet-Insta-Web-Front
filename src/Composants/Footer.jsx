@@ -1,11 +1,11 @@
-import '../Style/Style.css';
+import "../Styles/Style.css";
 
-function Footer() {
-  return (
-  <footer className='footer'>
-    <p>&copy; 2025 MonSiteWeb. Tous droits réservés.</p>
-  </footer>
-  );
+const Footer = () => {
+	return (
+		<footer className="footer">
+			<p>&copy; 2025 MonSiteWeb. Tous droits réservés.</p>
+		</footer>
+	);
 }
 
-export default Footer
+export default Footer;

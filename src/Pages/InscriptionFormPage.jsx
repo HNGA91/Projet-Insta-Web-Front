@@ -1,42 +1,92 @@
-import Header from "../Composants/Menu/Header.jsx";
-import Footer from "../Composants/Menu/Footer.jsx";
+import React, { useContext, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { UserContext } from "../Context/UserContext";
+import Header from "../Composants/Header.jsx"
+import Footer from "../Composants/Footer.jsx";
 import MenuLateral1 from "../Composants/Menu/MenuLateral1.jsx";
 import MenuLateral2 from "../Composants/Menu/MenuLateral2.jsx";
 import "../Styles/Style.css";
-import { useState, useEffect, useRef } from "react";
+
+const API_BASE_URL = import.meta.env.VITE_SERVER_URL;
 
 const InscriptionFormPage = () => {
 	const [formData, setFormData] = useState({
+		nom: "",
+		prenom: "",
 		email: "",
+		tel: "",
 		password: "",
-		confirmPw: "",
+		confirmPassword: "",
 	});
-	const [erreur, setErreur] = useState("");
-	const [passworderreur, setPasswordError] = useState("");
-	const [confirmPwerreur, setconfirmPwErreur] = useState("");
+	const [error, setError] = useState("");
+	const [errorNom, setErrorNom] = useState("");
+	const [errorPrenom, setErrorPrenom] = useState("");
+	const [errorEmail, setErrorEmail] = useState("");
+	const [errorTel, setErrorTel] = useState("");
+	const [errorPassword, setErrorPassword] = useState("");
+	const [errorConfirmPassword, setErrorConfirmPassword] = useState("");
+
+	// Pour vérifier l'état de validation du formulaire
 	const [isValid, setIsValid] = useState(false);
-	const emailInputRef = useRef(null); //Crée une référence vide au départ.
+
+	// Pour vérifier l'état de chargement du formulaire
+	const [loading, setLoading] = useState(false);
+
+	const navigate = useNavigate();
+
+	// Accès au context
+	const { login } = useContext(UserContext);
+
+	// Ref pour déplacer le focus entre les inputs
+	const nomInputRef = useRef(null);
+	const prenomInputRef = useRef(null);
+	const emailInputRef = useRef(null);
+	const telInputRef = useRef(null);
+	const passwordInputRef = useRef(null);
+	const confirmPasswordInputRef = useRef(null);
 
 	// Focus automatique sur le champ "nom" au chargement
 	useEffect(() => {
-		if (emailInputRef.current) {
-			emailInputRef.current.focus(); //Accède à l’élément DOM et lui applique la méthode focus().
-			console.log(emailInputRef.current);
+		if (nomInputRef.current) {
+			nomInputRef.current.focus(); //Accède à l’élément DOM et lui applique la méthode focus().
 		}
 	}, []); //Le tableau vide [] indique que l’effet ne dépend d’aucune variable externe. Il s’exécute une seule fois au montage du composant.
 
+	// Pour la navigation d'un champs à un autre
+	const handleInputForm = (e) => {
+		if (e.key === "Enter") {
+			e.preventDefault();
+			const inputs = [nomInputRef, prenomInputRef, emailInputRef, telInputRef, passwordInputRef, confirmPasswordInputRef];
+
+			const currentIndex = inputs.findIndex((ref) => ref.current === e.target);
+			if (currentIndex < inputs.length - 1) {
+				inputs[currentIndex + 1].current?.focus();
+			} else {
+				handleSubmit(e);
+			}
+		}
+	};
+
 	// UseEffect qui surveille la validité du formulaire pour l'activation du bouton submit
+	// Si la moindre erreur s'active, le formulaire ne peut pas etre envoyé
 	useEffect(() => {
 		const formIsValid =
+			formData.nom.trim() !== "" &&
+			formData.prenom.trim() !== "" &&
 			formData.email.trim() !== "" &&
+			formData.tel.trim() !== "" &&
 			formData.password.trim() !== "" &&
-			formData.confirmPw.trim() !== "" &&
-			!erreur &&
-			!passworderreur &&
-			!confirmPwerreur;
+			formData.confirmPassword.trim() !== "" &&
+			!error &&
+			!errorNom &&
+			!errorPrenom &&
+			!errorEmail &&
+			!errorTel &&
+			!errorPassword &&
+			!errorConfirmPassword;
 
 		setIsValid(formIsValid);
-	}, [formData, erreur, passworderreur, confirmPwerreur]);
+	}, [formData, error, errorNom, errorPrenom, errorEmail, errorTel, errorPassword, errorConfirmPassword]);
 
 	//...prev: opérateur de décomposition(spread operator)
 	//...prev permet de conserver les autres champs du formulaire inchangés
@@ -50,16 +100,55 @@ const InscriptionFormPage = () => {
 		//Se déclenche à chaque modification de motdepasse ou confirmMotdepasse
 		if (
 			formData.password &&
-			formData.confirmPw &&
-			formData.password !== formData.confirmPw //Si les deux champs sont remplis et ne correspondent pas
+			formData.confirmPassword &&
+			formData.password !== formData.confirmPassword //Si les deux champs sont remplis et ne correspondent pas
 		) {
-			setErreur("⚠️ Les mots de passe ne correspondent pas"); //Met à jour le message d’erreur
+			setError("⚠️ Les mots de passe ne correspondent pas"); //Met à jour le message d’erreur
 		} else {
-			setErreur(""); //Réinitialise le message d’erreur si les mots de passe correspondent
+			setError(""); //Réinitialise le message d’erreur si les mots de passe correspondent
 		}
-	}, [formData.password, formData.confirmPw]); //Dépendance aux changements de motdepasse et confirmMotdepasse
+	}, [formData.password, formData.confirmPassword]); //Dépendance aux changements de motdepasse et confirmMotdepasse
 
-	// Mise à jour du champ name + suppression de l'erreur si rempli
+	// Les différents Regex utiles aux vérifications
+	const nameRegex = /^[A-Za-zÀ-ÖØ-öø-ÿ\s'-]+$/;
+	const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+	const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{12,}$/;
+
+	//Vérification du champ "nom"
+	const handleNomChange = (e) => {
+		const { name, value } = e.target;
+		setFormData((prev) => ({
+			...prev,
+			[name]: value,
+		}));
+
+		if (value.trim() === "") {
+			setErrorNom('⚠️ Le champ "Nom" ne peut pas etre vide');
+		} else if (!nameRegex.test(value)) {
+			setErrorNom("⚠️ Le nom ne peut contenir que des lettres");
+		} else {
+			setErrorNom("");
+		}
+	};
+
+	//Vérification du champ "prenom"
+	const handlePrenomChange = (e) => {
+		const { name, value } = e.target;
+		setFormData((prev) => ({
+			...prev,
+			[name]: value,
+		}));
+
+		if (value.trim() === "") {
+			setErrorPrenom('⚠️ Le champ "Prenom" ne peut pas etre vide');
+		} else if (!nameRegex.test(value)) {
+			setErrorPrenom("⚠️ Le prenom ne peut contenir que des lettres");
+		} else {
+			setErrorPrenom("");
+		}
+	};
+
+	//Vérification du champ "email"
 	const handleEmailChange = (e) => {
 		const { name, value } = e.target;
 		setFormData((prev) => ({
@@ -67,16 +156,35 @@ const InscriptionFormPage = () => {
 			[name]: value,
 		}));
 
-		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 		if (value.trim() === "") {
-			setErreur('⚠️ Le champ "Email" ne peut pas etre vide');
+			setErrorEmail('⚠️ Le champ "Email" ne peut pas etre vide');
 		} else if (!emailRegex.test(value.trim())) {
-			setErreur("⚠️ Le format de l'email est invalide.");
+			setErrorEmail("⚠️ Le format de l'email est invalide.");
 		} else {
-			setErreur("");
+			setErrorEmail("");
 		}
 	};
 
+	//Vérification du champ "tel"
+	const handleTelChange = (e) => {
+		const { name, value } = e.target;
+		setFormData((prev) => ({
+			...prev,
+			[name]: numericValue,
+		}));
+
+		const numericValue = value.replace(/[^0-9]/g, "");
+
+		if (numericValue.trim() === "") {
+			setErrorTel('⚠️ Le champ "Numéro de téléphone" ne peut pas etre vide');
+		} else if (numericValue.length < 10) {
+			setErrorTel("⚠️ Le numéro de téléphone semble trop court");
+		} else {
+			setErrorTel("");
+		}
+	};
+
+	//Vérification du champ "mot de passe"
 	const handlePasswordChange = (e) => {
 		const { name, value } = e.target;
 		setFormData((prev) => ({
@@ -84,82 +192,115 @@ const InscriptionFormPage = () => {
 			[name]: value,
 		}));
 
-		const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{12,}$/;
 		if (value.trim() === "") {
-			setPasswordError('⚠️ Le champ "Mot de passe" ne peut pas etre vide');
+			setErrorPassword('⚠️ Le champ "Mot de passe" ne peut pas etre vide');
 		} else if (value.length < 12) {
-			setPasswordError('⚠️ Le champ "Mot de passe" doit etre supérieur ou égale à 12');
+			setErrorPassword('⚠️ Le champ "Mot de passe" doit etre supérieur ou égale à 12');
 		} else if (!passwordRegex.test(value.trim())) {
-			setPasswordError("⚠️ Le mot de passe est invalide");
+			setErrorPassword("⚠️ Le mot de passe est invalide");
 		} else {
-			setPasswordError("");
+			setErrorPassword("");
 		}
 	};
 
-	const handleconfirmPwChange = (e) => {
+	//Vérification du champ "confirmation de mot de passe"
+	const handleConfirmPasswordChange = (e) => {
 		const { name, value } = e.target;
 		setFormData((prev) => ({
 			...prev,
 			[name]: value,
 		}));
 
-		const confirmPwRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{12,}$/;
 		if (value.trim() === "") {
-			setconfirmPwErreur('⚠️ Le champ "Confirmation de mot de passe" ne peut pas etre vide');
+			setErrorConfirmPassword('⚠️ Le champ "Confirmation de mot de passe" ne peut pas etre vide');
 		} else if (value.length < 12) {
-			setconfirmPwErreur('⚠️ Le champ "Confirmation de mot de passe" doit etre supérieur ou égale à 12');
-		} else if (!confirmPwRegex.test(value.trim())) {
-			setconfirmPwErreur("⚠️ Le mot de passe est invalide");
+			setErrorConfirmPassword('⚠️ Le champ "Confirmation de mot de passe" doit etre supérieur ou égale à 12');
+		} else if (!passwordRegex.test(value.trim())) {
+			setErrorConfirmPassword("⚠️ Le mot de passe est invalide");
 		} else {
-			setconfirmPwErreur("");
+			setErrorConfirmPassword("");
 		}
 	};
 
-	const handleSubmit = (e) => {
+	const handleSubmit = async (e) => {
 		// Bloque le rechargement
 		e.preventDefault();
 
+		// Ajout de loading afin d'empêcher la double soumission
+		if (loading) return;
+
 		let isValid = true;
 
-		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-		const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{12,}$/;
+		// VALIDATION COTE CLIENT
+
+		// Nom
+		if (formData.nom.trim() === "") {
+			setErrorNom('⚠️ Le champ "Nom" ne peut pas être vide');
+			isValid = false;
+		} else if (!nameRegex.test(formData.nom)) {
+			setErrorNom("⚠️ Le nom ne peut contenir que des lettres");
+		} else {
+			setErrorNom("");
+		}
+
+		// Prenom
+		if (formData.prenom.trim() === "") {
+			setErrorPrenom('⚠️ Le champ "Prenom" ne peut pas être vide');
+			isValid = false;
+		} else if (!nameRegex.test(formData.prenom)) {
+			setErrorPrenom("⚠️ Le prenom ne peut contenir que des lettres");
+		} else {
+			setErrorPrenom("");
+		}
 
 		// Email
 		if (formData.email.trim() === "") {
-			setErreur('⚠️ Le champ "Email" ne peut pas être vide');
+			setErrorEmail('⚠️ Le champ "Email" ne peut pas être vide');
 			isValid = false;
 		} else if (!emailRegex.test(formData.email.trim())) {
-			setErreur("⚠️ Le format de l'email est invalide");
+			setErrorEmail("⚠️ Le format de l'email est invalide");
 			isValid = false;
 		} else {
-			setErreur("");
+			setErrorEmail("");
+		}
+
+		// Tel
+		if (formData.tel.trim() === "") {
+			setErrorTel('⚠️ Le champ "Tel" ne peut pas être vide');
+			isValid = false;
+		} else if (formData.tel.length < 10) {
+			setErrorTel("⚠️ Le numéro de téléphone semble trop court");
+			isValid = false;
+		} else {
+			setErrorTel("");
 		}
 
 		// Mot de passe
 		if (formData.password.trim() === "") {
-			setPasswordError('⚠️ Le champ "Mot de passe" ne peut pas être vide');
+			setErrorPassword('⚠️ Le champ "Mot de passe" ne peut pas être vide');
 			isValid = false;
 		} else if (formData.password.length < 12) {
-			setPasswordError('⚠️ Le champ "Mot de passe" doit etre supérieur ou égale à 12');
+			setErrorPassword('⚠️ Le champ "Mot de passe" doit etre supérieur ou égale à 12');
 			isValid = false;
 		} else if (!passwordRegex.test(formData.password.trim())) {
-			setPasswordError("⚠️ Le mot de passe est invalide");
+			setErrorPassword("⚠️ Le mot de passe est invalide");
 			isValid = false;
 		} else {
-			setPasswordError("");
+			setErrorPassword("");
 		}
-		// Confirmation
-		if (formData.confirmPw.trim() === "") {
-			setconfirmPwErreur('⚠️ Le champ "Confirmation de mot de passe" ne peut pas être vide');
+
+		// Confirmation du mot de passe
+		if (formData.confirmPassword.trim() === "") {
+			setErrorConfirmPassword('⚠️ Le champ "Confirmation de mot de passe" ne peut pas être vide');
 			isValid = false;
-		} else if (formData.confirmPw.length < 12) {
-			setconfirmPwErreur('⚠️ Le champ "Confirmation de mot de passe" doit etre supérieur ou égale à 12');
+		} else if (formData.confirmPassword.length < 12) {
+			setErrorConfirmPassword('⚠️ Le champ "Confirmation de mot de passe" doit etre supérieur ou égale à 12');
 			isValid = false;
-		} else if (formData.password !== formData.confirmPw) {
-			setconfirmPwErreur("⚠️ Les mots de passe ne correspondent pas");
+		} else if (formData.password !== formData.confirmPassword) {
+			setErrorConfirmPassword("⚠️ Les mots de passe ne correspondent pas");
 			isValid = false;
 		} else {
-			setconfirmPwErreur("");
+			setErrorConfirmPassword("");
 		}
 
 		if (!isValid) {
@@ -168,86 +309,208 @@ const InscriptionFormPage = () => {
 			return;
 		}
 
-		// Si tout est bon :
-		console.log("✅ Données envoyées :", formData);
+		setLoading(true);
+
+		// VALIDATION COTE BASE DE DONNEE
+
+		// Si la validation côté client est passée, on vérifie en base de données
+		try {
+			console.log("✅ Validation côté client réussie, connexion avec JWT...");
+
+			// Appel à la NOUVELLE route d'authentification
+			const response = await fetch(`${API_BASE_URL}/auth/inscription`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					nom: formData.nom,
+					prenom: formData.prenom,
+					email: formData.email,
+					tel: formData.tel,
+					password: formData.password,
+					source: "web",
+				}),
+			});
+
+			const result = await response.json();
+
+			if (result.success) {
+				console.log("✅ Connexion JWT réussie:", result.user);
+
+				// 1. Stocker le token
+				localStorage.setItem("authToken", result.token);
+				localStorage.setItem("user", JSON.stringify(result.user));
+
+				// 2. Mettre à jour le contexte utilisateur et connexion automatique après inscription
+				login(result.user, result.token);
+
+				// 3. Redirection
+				alert("✅ Inscription réussie !");
+				navigate("/");
+			} else {
+				alert(result.message);
+				console.log("❌ Échec de l'authentification:", result.message);
+			}
+		} catch (error) {
+			console.error("❌ Erreur lors de l'inscription:", error);
+			alert("Une erreur est survenue lors de l'inscription.");
+		} finally {
+			setLoading(false);
+		}
 	};
 
 	return (
 		<>
 			<Header />
-			<div className="main-content">
+			<main className="main-content">
 				<MenuLateral1 />
-				<main>
-					<div className="content-section">
-						<h2>Page d'inscription</h2>
-						<p>Veuillez remplir le champs afin de compléter votre inscription</p>
-						<form className="form" onSubmit={handleSubmit}>
-							<label className="form-label">Adresse mail:</label>
-							<br />
-							<input
-								ref={emailInputRef}
-								onChange={handleEmailChange}
-								className="form-control"
-								type="email"
-								name="email"
-								value={formData.email}
-								placeholder="Veuillez entrer votre adresse mail"
-							/>
-							{erreur && (
-								<p className="error-message" style={{ color: "red" }}>
-									{erreur}
-								</p>
-							)}
-							{console.log(formData.email)}
-							<br />
-							<br />
-							<label className="form-label">Mot de passe:</label>
-							<br />
-							<input
-								onChange={handlePasswordChange}
-								className="form-control"
-								type="password"
-								name="password"
-								value={formData.password}
-								placeholder="Veuillez entrer votre mot de passe"
-							/>
-							{passworderreur && (
-								<p className="error-message" style={{ color: "red" }}>
-									{passworderreur}
-								</p>
-							)}
-							{console.log(formData.password)}
-							<br />
-							<br />
-							<label className="form-label">Confirmation du mot de passe:</label>
-							<br />
-							<input
-								onChange={handleconfirmPwChange}
-								className="form-control"
-								type="password"
-								name="confirmPw"
-								value={formData.confirmPw}
-								placeholder="Veuillez entrer votre mot de passe"
-							/>
-							{confirmPwerreur && (
-								<p className="error-message" style={{ color: "red" }}>
-									{confirmPwerreur}
-								</p>
-							)}
-							{console.log(formData.confirmPw)}
-							<br />
-							<br />
-							<button type="submit" disabled={!isValid}>
+				<div className="content-section">
+					<h2>Page d'inscription</h2>
+					<p>Veuillez remplir le champs afin de compléter votre inscription</p>
+					<form className="form" onSubmit={handleSubmit}>
+						<label className="form-label">Nom:</label>
+						<br />
+						<input
+							ref={nomInputRef}
+							onChange={handleNomChange}
+							className="form-control"
+							type="text"
+							name="nom"
+							value={formData.nom}
+							onKeyDown={handleInputForm}
+							placeholder="Veuillez entrez votre nom ici"
+						/>
+						{errorNom && (
+							<p className="error-message" style={{ color: "red" }}>
+								{errorNom}
+							</p>
+						)}
+						<br />
+						<br />
+
+						<label className="form-label">Prenom:</label>
+						<br />
+						<input
+							ref={prenomInputRef}
+							onChange={handlePrenomChange}
+							className="form-control"
+							type="text"
+							name="prenom"
+							value={formData.prenom}
+							onKeyDown={handleInputForm}
+							placeholder="Veuillez entrez votre prenom ici"
+						/>
+						{errorPrenom && (
+							<p className="error-message" style={{ color: "red" }}>
+								{errorPrenom}
+							</p>
+						)}
+						<br />
+						<br />
+
+						<label className="form-label">Email:</label>
+						<br />
+						<input
+							ref={emailInputRef}
+							onChange={handleEmailChange}
+							className="form-control"
+							type="email"
+							name="email"
+							value={formData.email}
+							onKeyDown={handleInputForm}
+							placeholder="Veuillez entrer votre adresse mail ici"
+						/>
+						{errorEmail && (
+							<p className="error-message" style={{ color: "red" }}>
+								{errorEmail}
+							</p>
+						)}
+						<br />
+						<br />
+
+						<label className="form-label">Numéro de téléphone:</label>
+						<br />
+						<input
+							ref={telInputRef}
+							onChange={handleTelChange}
+							className="form-control"
+							type="tel"
+							name="tel"
+							value={formData.tel}
+							onKeyDown={handleInputForm}
+							placeholder="Entrez votre numéro de Téléphone ici"
+						/>
+						{errorTel && (
+							<p className="error-message" style={{ color: "red" }}>
+								{errorTel}
+							</p>
+						)}
+						<br />
+						<br />
+
+						<label className="form-label">Mot de passe:</label>
+						<br />
+						<input
+							ref={passwordInputRef}
+							onChange={handlePasswordChange}
+							className="form-control"
+							type="password"
+							name="password"
+							value={formData.password}
+							onKeyDown={handleInputForm}
+							placeholder="Veuillez entrer votre mot de passe ici"
+						/>
+						{errorPassword && (
+							<p className="error-message" style={{ color: "red" }}>
+								{errorPassword}
+							</p>
+						)}
+						<br />
+						<br />
+
+						<label className="form-label">Confirmation du mot de passe:</label>
+						<br />
+						<input
+							ref={confirmPasswordInputRef}
+							onChange={handleConfirmPasswordChange}
+							className="form-control"
+							type="password"
+							name="confirmPassword"
+							value={formData.confirmPassword}
+							onKeyDown={handleInputForm}
+							placeholder="Entrez votre confirmation de mot de passe ici"
+						/>
+						{errorConfirmPassword && (
+							<p className="error-message" style={{ color: "red" }}>
+								{errorConfirmPassword}
+							</p>
+						)}
+						<br />
+						<br />
+
+						{loading ? (
+							<div className="loading-container">
+								<div className="spinner"></div>
+								<p>Connexion en cours...</p>
+							</div>
+						) : (
+							<button
+								type="submit"
+								className={`btn ${!isValid ? "btn-invalid" : ""}`}
+								onClick={handleSubmit}
+								disabled={!isValid || loading}
+							>
 								{isValid ? "S'inscrire" : "Champs invalides"}
 							</button>
-						</form>
-					</div>
-				</main>
+						)}
+					</form>
+				</div>
 				<MenuLateral2 />
-			</div>
+			</main>
 			<Footer />
 		</>
 	);
-}
+};
 
 export default InscriptionFormPage;

@@ -1,10 +1,32 @@
-const API_BASE_URL = "http://localhost:3000/api";
+const API_BASE_URL = import.meta.env.VITE_SERVER_URL;
+
+const getAuthToken = () => {
+	try {
+		return localStorage.getItem("authToken"); // Stocké à la connexion
+	} catch (error) {
+		console.error("❌ Erreur récupération token:", error);
+		return null;
+	}
+};
 
 // Récupére toutes les données utilisateur (panier + favoris)
 // Au login ou au chargement de l'application renvoi { panier: [...], favoris: [...] } ou erreur
 export const fetchUserData = async (email) => {
 	try {
-		const response = await fetch(`${API_BASE_URL}/userdata/${email}`);
+		const token = getAuthToken();
+
+		const response = await fetch(`${API_BASE_URL}/userdata/${email}`, {
+			headers: {
+				Authorization: `Bearer ${token}`, //  Ajout du token
+			},
+		});
+
+		if (response.status === 401 || response.status === 403) {
+			// Token invalide → déconnecter l'utilisateur
+			localStorage.removeItem("authToken");
+			throw new Error("Session expirée");
+		}
+
 		if (!response.ok) {
 			throw new Error("❌ Erreur lors de la récupération des données utilisateur");
 		}
@@ -19,13 +41,22 @@ export const fetchUserData = async (email) => {
 // Après chaque modification du panier les données sont mises à jour ou erreur
 export const updatePanier = async (email, panier) => {
 	try {
+		const token = getAuthToken();
+
 		const response = await fetch(`${API_BASE_URL}/userdata/${email}/panier`, {
 			method: "PUT",
 			headers: {
+				Authorization: `Bearer ${token}`, //  Ajout du token
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({ panier }), // Envoie le panier complet
 		});
+
+		if (response.status === 401 || response.status === 403) {
+			// Token invalide → déconnecter l'utilisateur
+			localStorage.removeItem("authToken");
+			throw new Error("Session expirée");
+		}
 
 		if (!response.ok) {
 			throw new Error("❌ Erreur lors de la mise à jour du panier");
@@ -42,13 +73,22 @@ export const updatePanier = async (email, panier) => {
 // Après chaque modification des favoris les données sont mises à jour ou erreur
 export const updateFavoris = async (email, favoris) => {
 	try {
+		const token = getAuthToken();
+
 		const response = await fetch(`${API_BASE_URL}/userdata/${email}/favoris`, {
 			method: "PUT",
 			headers: {
+				Authorization: `Bearer ${token}`, //  Ajout du token
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({ favoris }), // Envoie les favoris complets
 		});
+
+		if (response.status === 401 || response.status === 403) {
+			// Token invalide → déconnecter l'utilisateur
+			localStorage.removeItem("authToken");
+			throw new Error("Session expirée");
+		}
 
 		if (!response.ok) {
 			throw new Error("❌ Erreur lors de la mise à jour des favoris");
@@ -64,9 +104,19 @@ export const updateFavoris = async (email, favoris) => {
 // Supprime les données utilisateur
 export const deleteUserData = async (email) => {
 	try {
+		const token = getAuthToken();
+
 		const response = await fetch(`${API_BASE_URL}/userdata/${email}`, {
 			method: "DELETE",
+			headers: {
+				Authorization: `Bearer ${token}`, // Ajout du token
+			},
 		});
+
+		if (response.status === 401 || response.status === 403) {
+			localStorage.removeItem("authToken");
+			throw new Error("Session expirée");
+		}
 
 		if (!response.ok) {
 			throw new Error("❌ Erreur lors de la suppression des données");

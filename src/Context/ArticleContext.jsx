@@ -8,13 +8,9 @@ export const ArticleProvider = ({ children }) => {
 	const [articles, setArticles] = useState([]);
 
 	return (
-		<ArticleContext.Provider
-			value={{
-				articles,
-				setArticles,
-			}}
-		>
-			{children}
-		</ArticleContext.Provider>
-	);
+        <ArticleContext.Provider 
+            value={{ articles, setArticles }}>
+                {children}
+        </ArticleContext.Provider>
+    );
 };

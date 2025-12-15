@@ -1,8 +1,8 @@
 import React from "react";
-import '../Style/Style.css';
+import "../../Styles/Style.css";
 import { Link } from "react-router-dom";
 
-function MenuLateral2 () {
+const MenuLateral2 = () => {
     return (
         <aside className='menu-lateral-2'>
             <h3>Menu lateral 2</h3>
