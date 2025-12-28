@@ -1,0 +1,96 @@
+# .gitlab-ci.yml
+stages:
+  - test
+  - build
+  - deploy          # Nouveau stage
+
+# Cache ultra-rapide (pnpm + Vite)
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - .pnpm-store/
+    - .vite/
+    - node_modules/
+
+variables:
+  NPM_CONFIG_CACHE: ".npm"
+  PNPM_HOME: "/root/.local/share/pnpm"
+
+# Template commun à tous les jobs Node
+.default_node_job: &default_node_job
+  image: node:22-alpine
+  before_script:
+    - corepack enable
+    - corepack prepare pnpm@latest --activate
+    - pnpm install --frozen-lockfile
+
+# ──────────────── TESTS ────────────────
+test:vitest:
+  <<: *default_node_job
+  stage: test
+  script:
+    - pnpm run test:run -- --coverage
+  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)%/'
+  artifacts:
+    when: always
+    paths:
+      - coverage/
+    expire_in: 7 days
+  only:
+    - merge_requests
+    - main
+    - develop
+    - tags
+
+# ──────────────── BUILD ────────────────
+build:
+  <<: *default_node_job
+  stage: build
+  script:
+    - pnpm run build        # crée le dossier dist/
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 1 day
+  only:
+    - main
+    - tags
+
+# ──────────────── DEPLOY sur GitLab Pages ────────────────
+deploy:production:
+  <<: *default_node_job
+  stage: deploy
+  script:
+    - echo "Déploiement sur GitLab Pages..."
+  dependencies:
+    - build
+  artifacts:
+    paths:
+      - dist/                 # ou public/ si tu utilises vite build --outDir public
+    expire_in: 30 days
+  environment:
+    name: production
+    url: https://$CI_PROJECT_PATH_SLUG.gitlab.io/$CI_PROJECT_NAME/
+  only:
+    - main                  # Déploie uniquement sur main
+    - tags                  # Et sur les tags (ex: v1.0.0)
+
+# ──────────────── Pages (rapport couverture + site) ────────────────
+pages:
+  <<: *default_node_job
+  stage: deploy
+  script:
+    - mkdir -p public
+    # 1. Rapport de couverture
+    - cp -r coverage/lcov-report/* public/coverage/ 2>/dev/null || echo "Pas de rapport lcov"
+    # 2. Site de production
+    - cp -r dist/* public/ 2>/dev/null || cp -r public/* public/ 2>/dev/null
+  artifacts:
+    paths:
+      - public
+    expire_in: 30 days
+  only:
+    - main
+  environment:
+    name: preview
+    url: https://$CI_PROJECT_PATH_SLUG.gitlab.io/-/$CI_PROJECT_NAME/

@@ -26,6 +26,14 @@ const InscriptionFormPage = () => {
 	const [errorPassword, setErrorPassword] = useState("");
 	const [errorConfirmPassword, setErrorConfirmPassword] = useState("");
 
+	// Pour vérifier l'états des critères du mot de passe
+	const [passwordCriteria, setPasswordCriteria] = useState({
+		hasUppercase: false,
+		hasLowercase: false,
+		hasNumber: false,
+		hasSpecialChar: false,
+	});
+
 	// Pour vérifier l'état de validation du formulaire
 	const [isValid, setIsValid] = useState(false);
 
@@ -114,6 +122,20 @@ const InscriptionFormPage = () => {
 	const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 	const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{12,}$/;
 
+	// Fonction pour vérifier tous les critères du mot de passe
+	const checkPasswordCriteria = (password) => {
+		const criteria = {
+			hasUppercase: /[A-Z]/.test(password),
+			hasLowercase: /[a-z]/.test(password),
+			hasNumber: /\d/.test(password),
+			hasSpecialChar: /[!@#$%^&*]/.test(password),
+		};
+		setPasswordCriteria(criteria);
+
+		// Vérifie si tous les critères sont remplis
+		return Object.values(criteria).every((criterion) => criterion === true);
+	};
+
 	//Vérification du champ "nom"
 	const handleNomChange = (e) => {
 		const { name, value } = e.target;
@@ -192,12 +214,17 @@ const InscriptionFormPage = () => {
 			[name]: value,
 		}));
 
+		// Vérifie les critères
+		const allCriteriaMet = checkPasswordCriteria(value);
+
 		if (value.trim() === "") {
 			setErrorPassword('⚠️ Le champ "Mot de passe" ne peut pas etre vide');
 		} else if (value.length < 12) {
 			setErrorPassword('⚠️ Le champ "Mot de passe" doit etre supérieur ou égale à 12');
 		} else if (!passwordRegex.test(value.trim())) {
 			setErrorPassword("⚠️ Le mot de passe est invalide");
+		} else if (!allCriteriaMet) {
+			setErrorPassword("⚠️ Le mot de passe ne respecte pas tous les critères");
 		} else {
 			setErrorPassword("");
 		}
@@ -275,6 +302,9 @@ const InscriptionFormPage = () => {
 			setErrorTel("");
 		}
 
+		// Vérifie tous les critères du mot de passe
+		const passwordAllCriteriaMet = checkPasswordCriteria(formData.password);
+
 		// Mot de passe
 		if (formData.password.trim() === "") {
 			setErrorPassword('⚠️ Le champ "Mot de passe" ne peut pas être vide');
@@ -284,6 +314,9 @@ const InscriptionFormPage = () => {
 			isValid = false;
 		} else if (!passwordRegex.test(formData.password.trim())) {
 			setErrorPassword("⚠️ Le mot de passe est invalide");
+			isValid = false;
+		} else if (!passwordAllCriteriaMet) {
+			setErrorPassword("⚠️ Le mot de passe ne respecte pas tous les critères");
 			isValid = false;
 		} else {
 			setErrorPassword("");
@@ -309,6 +342,7 @@ const InscriptionFormPage = () => {
 			return;
 		}
 
+		// Début du loading
 		setLoading(true);
 
 		// VALIDATION COTE BASE DE DONNEE
@@ -346,10 +380,10 @@ const InscriptionFormPage = () => {
 				login(result.user, result.token);
 
 				// 3. Redirection
-				alert("✅ Inscription réussie !");
+				alert("✅ Inscription réussie !", `Bienvenue, ${formData.prenom} !`);
 				navigate("/");
 			} else {
-				alert(result.message);
+				alert("❌ Erreur", result.message);
 				console.log("❌ Échec de l'authentification:", result.message);
 			}
 		} catch (error) {
@@ -360,14 +394,36 @@ const InscriptionFormPage = () => {
 		}
 	};
 
+	// Composant pour afficher un critère du mot de passe
+	const PasswordCriterion = ({ label, isMet }) => (
+		<div style={{ flexDirection: "row", alignItems: "center", marginVertical: 2 }}>
+			<div
+				style={{
+					width: 12,
+					height: 12,
+					borderRadius: 6,
+					backgroundColor: isMet ? "#2ecc71" : "#e74c3c",
+					marginRight: 8,
+				}}
+			></div>
+			<p
+				style={{
+					color: isMet ? "#2ecc71" : "#e74c3c",
+					fontSize: 12,
+				}}
+			>
+				{label}
+			</p>
+		</div>
+	);
+
 	return (
 		<>
 			<Header />
 			<main className="main-content">
 				<MenuLateral1 />
 				<div className="content-section">
-					<h2>Page d'inscription</h2>
-					<p>Veuillez remplir le champs afin de compléter votre inscription</p>
+					<h2>Veuillez remplir le champs afin de compléter votre inscription</h2>
 					<form className="form" onSubmit={handleSubmit}>
 						<label className="form-label">Nom:</label>
 						<br />
@@ -499,6 +555,7 @@ const InscriptionFormPage = () => {
 								type="submit"
 								className={`btn ${!isValid ? "btn-invalid" : ""}`}
 								onClick={handleSubmit}
+								// Désactivé si loading ou non valide
 								disabled={!isValid || loading}
 							>
 								{isValid ? "S'inscrire" : "Champs invalides"}

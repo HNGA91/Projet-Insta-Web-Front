@@ -14,11 +14,20 @@ const ConnexionFormPage = () => {
 	const [error, setError] = useState("");
 	const [errorEmail, setErrorEmail] = useState("");
 	const [errorPassword, setErrorPassword] = useState("");
+
+	// Pour vérifier l'état de validation du formulaire
 	const [isValid, setIsValid] = useState(false);
+
+	// Pour vérifier l'état de chargement du formulaire
 	const [loading, setLoading] = useState(false);
 
+	// Accès au context
 	const { login } = useContext(UserContext);
+
+	// Pour la navigation
 	const navigate = useNavigate();
+
+	//Ref pour déplacer le focus entre les inputs
 	const emailInputRef = useRef(null);
 	const passwordInputRef = useRef(null);
 
@@ -46,6 +55,7 @@ const ConnexionFormPage = () => {
 		setIsValid(formIsValid);
 	}, [formData, error, errorEmail, errorPassword]);
 
+	// Les différents Regex utiles aux vérifications
 	const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 	const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{12,}$/;
 
@@ -56,6 +66,7 @@ const ConnexionFormPage = () => {
 	// Utile pour mettre à jour partiellement un objet dans useState.
 	// Évite d’écraser les autres propriétés.
 
+	// Vérification du champ "email"
 	const handleEmailChange = (e) => {
 		const { name, value } = e.target;
 		setFormData((prev) => ({
@@ -72,6 +83,7 @@ const ConnexionFormPage = () => {
 		}
 	};
 
+	// Vérification du champ "mot de passe"
 	const handlePasswordChange = (e) => {
 		const { name, value } = e.target;
 		setFormData((prev) => ({
@@ -90,15 +102,19 @@ const ConnexionFormPage = () => {
 		}
 	};
 
-	const handleSubmit = async (e) => {
+	// Vérification du formulaire lors de la soumission
+    const handleSubmit = async (e) => {
 		// Bloque le rechargement
 		e.preventDefault();
 
+		// Ajout de loading afin d'empêcher la double soumission
 		if (loading) return;
 
 		let isValid = true;
 
 		// Validation côté client
+
+		// Email
 		if (formData.email.trim() === "") {
 			setErrorEmail('⚠️ Le champ "Email" ne peut pas être vide');
 			isValid = false;
@@ -109,6 +125,7 @@ const ConnexionFormPage = () => {
 			setErrorEmail("");
 		}
 
+		// Mot de passe
 		if (formData.password.trim() === "") {
 			setErrorPassword('⚠️ Le champ "Mot de passe" ne peut pas être vide');
 			isValid = false;
@@ -123,10 +140,12 @@ const ConnexionFormPage = () => {
 		}
 
 		if (!isValid) {
+			// Arrête tout ici si il y a une erreur
 			console.log("❌ Le formulaire contient des erreurs. Envoi bloqué");
 			return;
 		}
 
+		// Début du loading
 		setLoading(true);
 
 		// VALIDATION COTE BASE DE DONNEE
@@ -164,13 +183,14 @@ const ConnexionFormPage = () => {
 				alert("✅ Connexion réussie - Bienvenue !");
 				navigate("/");
 			} else {
-				alert(result.message);
+				alert("❌ Erreur", result.message);
 				console.log("❌ Échec de l'authentification:", result.message);
 			}
 		} catch (error) {
 			console.error("❌ Erreur lors de la connexion:", error);
-			alert("Une erreur est survenue lors de la connexion.");
+			alert("❌ Erreur", "Une erreur est survenue lors de la connexion.");
 		} finally {
+			// Fin du loading (même en cas d'erreur)
 			setLoading(false);
 		}
 	};
@@ -180,68 +200,67 @@ const ConnexionFormPage = () => {
 			<Header />
 			<main className="main-content">
 				<MenuLateral1 />
-					<div className="content-section">
-						<h2>Page de connexion</h2>
-						<p>Veuillez remplir les champs afin de vous authentifier</p>
+				<div className="content-section">
+					<h2>Veuillez remplir les champs afin de vous authentifier</h2>
 
-						<form className="form" onSubmit={handleSubmit}>
-							<label className="form-label">Email:</label>
-							<br />
-							<input
-								ref={emailInputRef}
-								type="email"
-								name="email"
-								className="form-control"
-								value={formData.email}
-								onChange={handleEmailChange}
-								onKeyDown={handleInputForm}
-								placeholder="Veuillez entrer votre adresse mail"
-							/>
-							{errorEmail && (
-								<p className="error-message" style={{ color: "red" }}>
-									{errorEmail}
-								</p>
-							)}
-							<br />
-							<br />
+					<form className="form" onSubmit={handleSubmit}>
+						<label className="form-label">Email:</label>
+						<br />
+						<input
+							ref={emailInputRef}
+							type="email"
+							name="email"
+							className="form-control"
+							value={formData.email}
+							onChange={handleEmailChange}
+							onKeyDown={handleInputForm}
+							placeholder="Veuillez entrer votre adresse mail"
+						/>
+						{errorEmail && (
+							<p className="error-message" style={{ color: "red" }}>
+								{errorEmail}
+							</p>
+						)}
+						<br />
+						<br />
 
-							<label className="form-label">Mot de passe:</label>
-							<br />
-							<input
-								ref={passwordInputRef}
-								type="password"
-								name="password"
-								className="form-control"
-								value={formData.password}
-								onChange={handlePasswordChange}
-								onKeyDown={handleInputForm}
-								placeholder="Veuillez entrer votre mot de passe"
-							/>
-							{errorPassword && (
-								<p className="error-message" style={{ color: "red" }}>
-									{errorPassword}
-								</p>
-							)}
-							<br />
-							<br />
+						<label className="form-label">Mot de passe:</label>
+						<br />
+						<input
+							ref={passwordInputRef}
+							type="password"
+							name="password"
+							className="form-control"
+							value={formData.password}
+							onChange={handlePasswordChange}
+							onKeyDown={handleInputForm}
+							placeholder="Veuillez entrer votre mot de passe"
+						/>
+						{errorPassword && (
+							<p className="error-message" style={{ color: "red" }}>
+								{errorPassword}
+							</p>
+						)}
+						<br />
+						<br />
 
-							{loading ? (
-								<div className="loading-container">
-									<div className="spinner"></div>
-									<p>Connexion en cours...</p>
-								</div>
-							) : (
-								<button
-									type="submit"
-									className={`btn ${!isValid ? "btn-invalid" : ""}`}
-									onClick={handleSubmit}
-									disabled={!isValid || loading}
-								>
-									{isValid ? "Se connecter" : "Champs invalides"}
-								</button>
-							)}
-						</form>
-					</div>
+						{loading ? (
+							<div className="loading-container">
+								<div className="spinner"></div>
+								<p className="p-loading">Connexion en cours...</p>
+							</div>
+						) : (
+							<button
+								type="submit"
+								className={`btn ${!isValid ? "btn-invalid" : ""}`}
+								onClick={handleSubmit}
+								disabled={!isValid || loading}
+							>
+								{isValid ? "Se connecter" : "Champs invalides"}
+							</button>
+						)}
+					</form>
+				</div>
 				<MenuLateral2 />
 			</main>
 
