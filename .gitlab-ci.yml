@@ -1,22 +1,25 @@
-# .gitlab-ci.yml
+# ============================================
+# GitLab CI/CD - Frontend (React + Vitest)
+# ============================================
+
 stages:
+  - install
+  - lint
   - test
   - build
-  - deploy          # Nouveau stage
+  - deploy
 
-# Cache ultra-rapide (pnpm + Vite)
 cache:
   key: ${CI_COMMIT_REF_SLUG}
   paths:
     - .pnpm-store/
-    - .vite/
     - node_modules/
 
 variables:
-  NPM_CONFIG_CACHE: ".npm"
+  NODE_ENV: test
   PNPM_HOME: "/root/.local/share/pnpm"
 
-# Template commun à tous les jobs Node
+# Template commun à tous les jobs
 .default_node_job: &default_node_job
   image: node:22-alpine
   before_script:
@@ -24,67 +27,77 @@ variables:
     - corepack prepare pnpm@latest --activate
     - pnpm install --frozen-lockfile
 
-# ──────────────── TESTS ────────────────
+# ──────────────── INSTALL ────────────────
+install-dependencies:
+  <<: *default_node_job
+  stage: install
+  script:
+    - echo "📦 Dépendances installées via before_script"
+  artifacts:
+    paths:
+      - node_modules/
+    expire_in: 1 hour
+
+# ──────────────── LINT ────────────────
+lint:
+  <<: *default_node_job
+  stage: lint
+  needs: [install-dependencies]
+  script:
+    - echo "🔍 Vérification ESLint..."
+    - pnpm run lint
+  allow_failure: false
+
+# ──────────────── TEST ────────────────
 test:vitest:
   <<: *default_node_job
   stage: test
+  needs: [install-dependencies]
   script:
-    - pnpm run test:run -- --coverage
-  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)%/'
+    - echo "🧪 Exécution des tests unitaires..."
+    - pnpm run test:coverage
+  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
   artifacts:
     when: always
     paths:
       - coverage/
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura-coverage.xml
     expire_in: 7 days
   only:
     - merge_requests
     - main
     - develop
-    - tags
 
 # ──────────────── BUILD ────────────────
 build:
   <<: *default_node_job
   stage: build
+  needs: [test:vitest]
   script:
-    - pnpm run build        # crée le dossier dist/
+    - echo "🏗️ Build de production..."
+    - pnpm run build
   artifacts:
     paths:
       - dist/
-    expire_in: 1 day
+    expire_in: 7 days
   only:
     - main
-    - tags
+    - develop
 
-# ──────────────── DEPLOY sur GitLab Pages ────────────────
-deploy:production:
-  <<: *default_node_job
-  stage: deploy
-  script:
-    - echo "Déploiement sur GitLab Pages..."
-  dependencies:
-    - build
-  artifacts:
-    paths:
-      - dist/                 # ou public/ si tu utilises vite build --outDir public
-    expire_in: 30 days
-  environment:
-    name: production
-    url: https://$CI_PROJECT_PATH_SLUG.gitlab.io/$CI_PROJECT_NAME/
-  only:
-    - main                  # Déploie uniquement sur main
-    - tags                  # Et sur les tags (ex: v1.0.0)
-
-# ──────────────── Pages (rapport couverture + site) ────────────────
+# ──────────────── DEPLOY ────────────────
 pages:
   <<: *default_node_job
   stage: deploy
+  needs: [build]
   script:
+    - echo "🚀 Déploiement GitLab Pages..."
     - mkdir -p public
-    # 1. Rapport de couverture
-    - cp -r coverage/lcov-report/* public/coverage/ 2>/dev/null || echo "Pas de rapport lcov"
-    # 2. Site de production
-    - cp -r dist/* public/ 2>/dev/null || cp -r public/* public/ 2>/dev/null
+    - cp -r dist/* public/
+    - mkdir -p public/coverage
+    - cp -r coverage/lcov-report/* public/coverage/ 2>/dev/null || true
   artifacts:
     paths:
       - public
@@ -92,5 +105,5 @@ pages:
   only:
     - main
   environment:
-    name: preview
-    url: https://$CI_PROJECT_PATH_SLUG.gitlab.io/-/$CI_PROJECT_NAME/
+    name: production
+    url: https://$CI_PROJECT_PATH_SLUG.gitlab.io/$CI_PROJECT_NAME/

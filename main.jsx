@@ -14,3 +14,10 @@ createRoot(document.getElementById("root")).render(
 		</UserProvider>
 	</StrictMode>
 );
+
+/*
+ * Project: MyprojectWebFrontend
+ * Author: Hervé N'Goma
+ * GitHub: https://github.com/HNGA91
+ * License: MIT
+ */

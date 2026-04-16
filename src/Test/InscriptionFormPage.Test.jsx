@@ -4,6 +4,8 @@ import userEvent from "@testing-library/user-event";
 import Inscription from "../Composant/Inscription";
 
 describe("Page d'inscription ", () => {
+	// ========== SCÉNARIO 1 : FORMULAIRE VIERGE AU CHARGEMENT ==========
+	// Test du formulaire vide au chargement
 	it("affiche le formulaire avec tous les champs vides au chargement", () => {
 		// Création d'un mock pour onSuccess
 		const onSuccessMock = vi.fn();
