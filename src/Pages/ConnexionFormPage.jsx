@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { UserContext } from "../Context/UserContext";
+import { UserContext } from "../Context/UserContext.js";
 import "../Styles/Style.css";
 import Header from "../Composants/Header.jsx";
 import Footer from "../Composants/Footer.jsx";
@@ -9,7 +9,7 @@ import MenuLateral2 from "../Composants/Menu/MenuLateral2.jsx";
 
 const API_BASE_URL = import.meta.env.VITE_SERVER_URL;
 
-const ConnexionFormPage = () => {
+const ConnexionFormPage = ({ onSubmit }) => {
 	const [formData, setFormData] = useState({ email: "", password: "" });
 	const [error, setError] = useState("");
 	const [errorEmail, setErrorEmail] = useState("");
@@ -57,7 +57,7 @@ const ConnexionFormPage = () => {
 
 	// Les différents Regex utiles aux vérifications
 	const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-	const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{12,}$/;
+	const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z0-9!@#$%^&*]{12,}$/;
 
 	//...prev: opérateur de décomposition(spread operator)
 	//...prev permet de conserver les autres champs du formulaire inchangés
@@ -75,9 +75,9 @@ const ConnexionFormPage = () => {
 		}));
 
 		if (value.trim() === "") {
-			setErrorEmail('⚠️ Le champ "Email" ne peut pas etre vide');
+			setErrorEmail('⚠️ Le champ "Email" ne peut pas être vide');
 		} else if (!emailRegex.test(value.trim())) {
-			setErrorEmail("⚠️ Le format de l'email est invalide.");
+			setErrorEmail("⚠️ Le format de l'email est invalide");
 		} else {
 			setErrorEmail("");
 		}
@@ -92,9 +92,9 @@ const ConnexionFormPage = () => {
 		}));
 
 		if (value.trim() === "") {
-			setErrorPassword('⚠️ Le champ "Mot de passe" ne peut pas etre vide');
+			setErrorPassword('⚠️ Le champ "Mot de passe" ne peut pas être vide');
 		} else if (value.length < 12) {
-			setErrorPassword('⚠️ Le champ "Mot de passe" doit etre supérieur ou égale à 12');
+			setErrorPassword('⚠️ Le champ "Mot de passe" doit être supérieur ou égale à 12');
 		} else if (!passwordRegex.test(value.trim())) {
 			setErrorPassword("⚠️ Le mot de passe est invalide");
 		} else {
@@ -103,7 +103,7 @@ const ConnexionFormPage = () => {
 	};
 
 	// Vérification du formulaire lors de la soumission
-    const handleSubmit = async (e) => {
+	const handleSubmit = async (e) => {
 		// Bloque le rechargement
 		e.preventDefault();
 
@@ -130,7 +130,7 @@ const ConnexionFormPage = () => {
 			setErrorPassword('⚠️ Le champ "Mot de passe" ne peut pas être vide');
 			isValid = false;
 		} else if (formData.password.length < 12) {
-			setErrorPassword('⚠️ Le champ "Mot de passe" doit etre supérieur ou égale à 12');
+			setErrorPassword('⚠️ Le champ "Mot de passe" doit être supérieur ou égale à 12');
 			isValid = false;
 		} else if (!passwordRegex.test(formData.password.trim())) {
 			setErrorPassword("⚠️ Le mot de passe est invalide");
@@ -143,6 +143,12 @@ const ConnexionFormPage = () => {
 			// Arrête tout ici si il y a une erreur
 			console.log("❌ Le formulaire contient des erreurs. Envoi bloqué");
 			return;
+		}
+
+		// Appel du onSubmit pour les tests
+		if (onSubmit) {
+			onSubmit(formData);
+			return; // évite l'appel API pendant les tests
 		}
 
 		// Début du loading
@@ -203,11 +209,14 @@ const ConnexionFormPage = () => {
 				<div className="content-section">
 					<h2>Veuillez remplir les champs afin de vous authentifier</h2>
 
-					<form className="form" onSubmit={handleSubmit}>
-						<label className="form-label">Email:</label>
+					<form className="form" onSubmit={handleSubmit} data-testid="form">
+						<label className="form-label" htmlFor="email">
+							Email :
+						</label>
 						<br />
 						<input
 							ref={emailInputRef}
+							id="email"
 							type="email"
 							name="email"
 							className="form-control"
@@ -223,11 +232,13 @@ const ConnexionFormPage = () => {
 						)}
 						<br />
 						<br />
-
-						<label className="form-label">Mot de passe:</label>
+						<label className="form-label" htmlFor="password">
+							Mot de passe :
+						</label>
 						<br />
 						<input
 							ref={passwordInputRef}
+							id="password"
 							type="password"
 							name="password"
 							className="form-control"
@@ -243,7 +254,6 @@ const ConnexionFormPage = () => {
 						)}
 						<br />
 						<br />
-
 						{loading ? (
 							<div className="loading-container">
 								<div className="spinner"></div>
@@ -253,7 +263,7 @@ const ConnexionFormPage = () => {
 							<button
 								type="submit"
 								className={`btn ${!isValid ? "btn-invalid" : ""}`}
-								onClick={handleSubmit}
+								// Désactivé si loading ou non valide
 								disabled={!isValid || loading}
 							>
 								{isValid ? "Se connecter" : "Champs invalides"}

@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { Link } from "react-router-dom";
 import "../../Styles/Style.css";
-import { UserContext } from "../../Context/UserContext";
+import { UserContext } from "../../Context/UserContext.js";
 
 const Menu = () => {
     // Accès au context

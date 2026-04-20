@@ -3,13 +3,19 @@ import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import { defineConfig, globalIgnores } from "eslint/config";
+import vitest from "eslint-plugin-vitest";
 
 export default defineConfig([
 	globalIgnores(["dist", "node_modules"]),
 
 	{
 		files: ["**/*.{js,jsx}"],
-		extends: [js.configs.recommended, reactHooks.configs["recommended-latest"], reactRefresh.configs.vite],
+		plugins: {
+			vitest,
+			"react-hooks": reactHooks,
+			"react-refresh": reactRefresh,
+		},
+		extends: [js.configs.recommended],
 
 		languageOptions: {
 			ecmaVersion: "latest",
@@ -17,11 +23,13 @@ export default defineConfig([
 			globals: {
 				...globals.browser,
 				...globals.node,
+				...vitest.environments.env.globals,
 			},
-		},
-		parserOptions: {
-			ecmaVersion: "latest",
-			ecmaFeatures: { jsx: true },
+			parserOptions: {
+				ecmaFeatures: {
+					jsx: true,
+				},
+			},
 		},
 
 		settings: {
@@ -31,7 +39,13 @@ export default defineConfig([
 		},
 
 		rules: {
-			"no-unused-vars": ["error", { varsIgnorePattern: "^[A-Z_]" }],
+			// Règles react-hooks manuellement (évite le conflit de format)
+			"react-hooks/rules-of-hooks": "error",
+			"react-hooks/exhaustive-deps": "warn",
+			// Règle react-refresh manuellement
+			"react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
+			// Mes règles
+			"no-unused-vars": ["warn", { varsIgnorePattern: "^[A-Z_]" }],
 		},
 	},
 ]);

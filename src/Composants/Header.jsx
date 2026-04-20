@@ -1,7 +1,7 @@
 import "../Styles/Style.css";
 import Menu from "../Composants/Menu/Menu";
 import { useNavigate } from "react-router-dom";
-import { UserContext } from "../Context/UserContext";
+import { UserContext } from "../Context/UserContext.js";
 import { useContext } from "react";
 
 const Header = () => {

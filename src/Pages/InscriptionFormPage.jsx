@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { UserContext } from "../Context/UserContext";
+import { UserContext } from "../Context/UserContext.js";
 import Header from "../Composants/Header.jsx"
 import Footer from "../Composants/Footer.jsx";
 import MenuLateral1 from "../Composants/Menu/MenuLateral1.jsx";
@@ -9,7 +9,7 @@ import "../Styles/Style.css";
 
 const API_BASE_URL = import.meta.env.VITE_SERVER_URL;
 
-const InscriptionFormPage = () => {
+const InscriptionFormPage = ({ onSuccess }) => {
 	const [formData, setFormData] = useState({
 		nom: "",
 		prenom: "",
@@ -145,7 +145,7 @@ const InscriptionFormPage = () => {
 		}));
 
 		if (value.trim() === "") {
-			setErrorNom('⚠️ Le champ "Nom" ne peut pas etre vide');
+			setErrorNom('⚠️ Le champ "Nom" ne peut pas être vide');
 		} else if (!nameRegex.test(value)) {
 			setErrorNom("⚠️ Le nom ne peut contenir que des lettres");
 		} else {
@@ -162,7 +162,7 @@ const InscriptionFormPage = () => {
 		}));
 
 		if (value.trim() === "") {
-			setErrorPrenom('⚠️ Le champ "Prenom" ne peut pas etre vide');
+			setErrorPrenom('⚠️ Le champ "Prenom" ne peut pas être vide');
 		} else if (!nameRegex.test(value)) {
 			setErrorPrenom("⚠️ Le prenom ne peut contenir que des lettres");
 		} else {
@@ -179,28 +179,48 @@ const InscriptionFormPage = () => {
 		}));
 
 		if (value.trim() === "") {
-			setErrorEmail('⚠️ Le champ "Email" ne peut pas etre vide');
+			setErrorEmail('⚠️ Le champ "Email" ne peut pas être vide');
 		} else if (!emailRegex.test(value.trim())) {
-			setErrorEmail("⚠️ Le format de l'email est invalide.");
+			setErrorEmail("⚠️ Le format de l'email est invalide");
 		} else {
 			setErrorEmail("");
 		}
 	};
 
 	//Vérification du champ "tel"
+	const phoneRegex = /^(0|\+33)[1-9][0-9]{8}$/;
+
 	const handleTelChange = (e) => {
 		const { name, value } = e.target;
+
+		// Nettoyage : on garde chiffres et +
+		let cleanedValue = value.replace(/[^0-9+]/g, "");
+
+		// Autoriser UN SEUL "+" et uniquement au début
+		if (cleanedValue.includes("+")) {
+			// Supprime tous les "+"
+			cleanedValue = cleanedValue.replace(/\+/g, "");
+
+			// Si l'utilisateur avait mis un "+" au début → on le remet
+			if (value.trim().startsWith("+")) {
+				cleanedValue = "+" + cleanedValue;
+			}
+		}
+
+		// Version chiffres uniquement (pour la longueur)
+		const numericValue = cleanedValue.replace(/[^0-9]/g, "");
+
 		setFormData((prev) => ({
 			...prev,
-			[name]: numericValue,
+			[name]: cleanedValue,
 		}));
 
-		const numericValue = value.replace(/[^0-9]/g, "");
-
-		if (numericValue.trim() === "") {
-			setErrorTel('⚠️ Le champ "Numéro de téléphone" ne peut pas etre vide');
-		} else if (numericValue.length < 10) {
-			setErrorTel("⚠️ Le numéro de téléphone semble trop court");
+		if (cleanedValue.trim() === "") {
+			setErrorTel('⚠️ Le champ "Numéro de téléphone" ne peut pas être vide');
+		} else if (numericValue.length !== 10 && numericValue.length !== 11) {
+			setErrorTel("⚠️ Le numéro doit contenir 10 chiffres (ou 11 avec indicatif +33)");
+		} else if (!phoneRegex.test(cleanedValue)) {
+			setErrorTel("⚠️ Le format du numéro de téléphone est invalide");
 		} else {
 			setErrorTel("");
 		}
@@ -218,9 +238,9 @@ const InscriptionFormPage = () => {
 		const allCriteriaMet = checkPasswordCriteria(value);
 
 		if (value.trim() === "") {
-			setErrorPassword('⚠️ Le champ "Mot de passe" ne peut pas etre vide');
+			setErrorPassword('⚠️ Le champ "Mot de passe" ne peut pas être vide');
 		} else if (value.length < 12) {
-			setErrorPassword('⚠️ Le champ "Mot de passe" doit etre supérieur ou égale à 12');
+			setErrorPassword('⚠️ Le champ "Mot de passe" doit être supérieur ou égale à 12');
 		} else if (!passwordRegex.test(value.trim())) {
 			setErrorPassword("⚠️ Le mot de passe est invalide");
 		} else if (!allCriteriaMet) {
@@ -239,9 +259,9 @@ const InscriptionFormPage = () => {
 		}));
 
 		if (value.trim() === "") {
-			setErrorConfirmPassword('⚠️ Le champ "Confirmation de mot de passe" ne peut pas etre vide');
+			setErrorConfirmPassword('⚠️ Le champ "Confirmation de mot de passe" ne peut pas être vide');
 		} else if (value.length < 12) {
-			setErrorConfirmPassword('⚠️ Le champ "Confirmation de mot de passe" doit etre supérieur ou égale à 12');
+			setErrorConfirmPassword('⚠️ Le champ "Confirmation de mot de passe" doit être supérieur ou égale à 12');
 		} else if (!passwordRegex.test(value.trim())) {
 			setErrorConfirmPassword("⚠️ Le mot de passe est invalide");
 		} else {
@@ -266,6 +286,7 @@ const InscriptionFormPage = () => {
 			isValid = false;
 		} else if (!nameRegex.test(formData.nom)) {
 			setErrorNom("⚠️ Le nom ne peut contenir que des lettres");
+            isValid = false;
 		} else {
 			setErrorNom("");
 		}
@@ -276,6 +297,7 @@ const InscriptionFormPage = () => {
 			isValid = false;
 		} else if (!nameRegex.test(formData.prenom)) {
 			setErrorPrenom("⚠️ Le prenom ne peut contenir que des lettres");
+            isValid = false;
 		} else {
 			setErrorPrenom("");
 		}
@@ -292,12 +314,32 @@ const InscriptionFormPage = () => {
 		}
 
 		// Tel
-		if (formData.tel.trim() === "") {
-			setErrorTel('⚠️ Le champ "Tel" ne peut pas être vide');
-			isValid = false;
-		} else if (formData.tel.length < 10) {
-			setErrorTel("⚠️ Le numéro de téléphone semble trop court");
-			isValid = false;
+		// Nettoyage : on garde chiffres et +
+		let cleanedValue = formData.tel.replace(/[^0-9+]/g, "");
+
+		// Autoriser UN SEUL "+" et uniquement au début
+		if (cleanedValue.includes("+")) {
+			// Supprime tous les "+"
+			cleanedValue = cleanedValue.replace(/\+/g, "");
+
+			// Si l'utilisateur avait mis un "+" au début → on le remet
+			if (formData.tel.trim().startsWith("+")) {
+				cleanedValue = "+" + cleanedValue;
+			}
+		}
+
+		// Version chiffres uniquement (pour la longueur)
+		const numericValue = cleanedValue.replace(/[^0-9]/g, "");
+
+		if (cleanedValue.trim() === "") {
+			setErrorTel('⚠️ Le champ "Numéro de téléphone" ne peut pas être vide');
+            isValid = false;
+		} else if (numericValue.length !== 10 && numericValue.length !== 11) {
+			setErrorTel("⚠️ Le numéro doit contenir 10 chiffres (ou 11 avec indicatif +33)");
+            isValid = false;
+		} else if (!phoneRegex.test(cleanedValue)) {
+			setErrorTel("⚠️ Le format du numéro de téléphone est invalide");
+            isValid = false;
 		} else {
 			setErrorTel("");
 		}
@@ -310,7 +352,7 @@ const InscriptionFormPage = () => {
 			setErrorPassword('⚠️ Le champ "Mot de passe" ne peut pas être vide');
 			isValid = false;
 		} else if (formData.password.length < 12) {
-			setErrorPassword('⚠️ Le champ "Mot de passe" doit etre supérieur ou égale à 12');
+			setErrorPassword('⚠️ Le champ "Mot de passe" doit être supérieur ou égale à 12');
 			isValid = false;
 		} else if (!passwordRegex.test(formData.password.trim())) {
 			setErrorPassword("⚠️ Le mot de passe est invalide");
@@ -327,7 +369,7 @@ const InscriptionFormPage = () => {
 			setErrorConfirmPassword('⚠️ Le champ "Confirmation de mot de passe" ne peut pas être vide');
 			isValid = false;
 		} else if (formData.confirmPassword.length < 12) {
-			setErrorConfirmPassword('⚠️ Le champ "Confirmation de mot de passe" doit etre supérieur ou égale à 12');
+			setErrorConfirmPassword('⚠️ Le champ "Confirmation de mot de passe" doit être supérieur ou égale à 12');
 			isValid = false;
 		} else if (formData.password !== formData.confirmPassword) {
 			setErrorConfirmPassword("⚠️ Les mots de passe ne correspondent pas");
@@ -340,6 +382,12 @@ const InscriptionFormPage = () => {
 			// Arrête tout ici si il y a une erreur
 			console.log("❌ Le formulaire contient des erreurs. Envoi bloqué");
 			return;
+		}
+
+		// Appel du onSubmit pour les tests
+		if (onSuccess) {
+			onSuccess(formData);
+			return; // évite l'appel API pendant les tests
 		}
 
 		// Début du loading
@@ -424,11 +472,14 @@ const InscriptionFormPage = () => {
 				<MenuLateral1 />
 				<div className="content-section">
 					<h2>Veuillez remplir le champs afin de compléter votre inscription</h2>
-					<form className="form" onSubmit={handleSubmit}>
-						<label className="form-label">Nom:</label>
+					<form className="form" onSubmit={handleSubmit} data-testid="form">
+						<label className="form-label" htmlFor="nom">
+							Nom :
+						</label>
 						<br />
 						<input
 							ref={nomInputRef}
+							id="nom"
 							onChange={handleNomChange}
 							className="form-control"
 							type="text"
@@ -444,11 +495,13 @@ const InscriptionFormPage = () => {
 						)}
 						<br />
 						<br />
-
-						<label className="form-label">Prenom:</label>
+						<label className="form-label" htmlFor="prenom">
+							Prenom :
+						</label>
 						<br />
 						<input
 							ref={prenomInputRef}
+							id="prenom"
 							onChange={handlePrenomChange}
 							className="form-control"
 							type="text"
@@ -464,11 +517,13 @@ const InscriptionFormPage = () => {
 						)}
 						<br />
 						<br />
-
-						<label className="form-label">Email:</label>
+						<label className="form-label" htmlFor="email">
+							Email :
+						</label>
 						<br />
 						<input
 							ref={emailInputRef}
+							id="email"
 							onChange={handleEmailChange}
 							className="form-control"
 							type="email"
@@ -484,11 +539,13 @@ const InscriptionFormPage = () => {
 						)}
 						<br />
 						<br />
-
-						<label className="form-label">Numéro de téléphone:</label>
+						<label className="form-label" htmlFor="tel">
+							Numéro de téléphone :
+						</label>
 						<br />
 						<input
 							ref={telInputRef}
+							id="tel"
 							onChange={handleTelChange}
 							className="form-control"
 							type="tel"
@@ -504,11 +561,13 @@ const InscriptionFormPage = () => {
 						)}
 						<br />
 						<br />
-
-						<label className="form-label">Mot de passe:</label>
+						<label className="form-label" htmlFor="password">
+							Mot de passe :
+						</label>
 						<br />
 						<input
 							ref={passwordInputRef}
+							id="password"
 							onChange={handlePasswordChange}
 							className="form-control"
 							type="password"
@@ -524,11 +583,13 @@ const InscriptionFormPage = () => {
 						)}
 						<br />
 						<br />
-
-						<label className="form-label">Confirmation du mot de passe:</label>
+						<label className="form-label" htmlFor="confirmPassword">
+							Confirmation du mot de passe :
+						</label>
 						<br />
 						<input
 							ref={confirmPasswordInputRef}
+							id="confirmPassword"
 							onChange={handleConfirmPasswordChange}
 							className="form-control"
 							type="password"
@@ -544,7 +605,6 @@ const InscriptionFormPage = () => {
 						)}
 						<br />
 						<br />
-
 						{loading ? (
 							<div className="loading-container">
 								<div className="spinner"></div>
@@ -554,7 +614,6 @@ const InscriptionFormPage = () => {
 							<button
 								type="submit"
 								className={`btn ${!isValid ? "btn-invalid" : ""}`}
-								onClick={handleSubmit}
 								// Désactivé si loading ou non valide
 								disabled={!isValid || loading}
 							>

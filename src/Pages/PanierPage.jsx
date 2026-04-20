@@ -1,5 +1,5 @@
 import React, { useContext, memo } from "react";
-import { UserContext } from "../Context/UserContext";
+import { UserContext } from "../Context/UserContext.js";
 import "../Styles/Style.css";
 import Header from "../Composants/Header.jsx";
 import Footer from "../Composants/Footer.jsx";

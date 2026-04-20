@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, useCallback, useMemo, memo } from "react";
-import { ArticleContext } from "../Context/ArticleContext";
-import { UserContext } from "../Context/UserContext";
+import { ArticleContext } from "../Context/ArticleContext.js";
+import { UserContext } from "../Context/UserContext.js";
 import ArticlesItem from "../Composants/List/ArticlesItem.jsx";
 import "../Styles/Style.css";
 import { useNavigate } from "react-router-dom";
@@ -89,6 +89,7 @@ const CataloguePage = memo(() => {
 
 			return (
 				<ArticlesItem
+					key={item._id}
 					item={item}
 					isVisible={isVisible}
 					estFavori={estFavori}

@@ -1,8 +1,6 @@
-import React, { createContext, useState, useCallback, useEffect, useMemo } from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { updatePanier, updateFavoris, fetchUserData } from "../Database/UserDataAPI";
-
-//Créer un context - une sorte de "zone mémoire partagée"
-export const UserContext = createContext();
+import { UserContext } from "./UserContext.js";
 
 //Definir le fournisseur du context
 export const UserProvider = ({ children }) => {

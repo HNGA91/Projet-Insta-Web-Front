@@ -1,7 +1,5 @@
-import React, { createContext, useState } from "react";
-
-//Créer un context - une sorte de "zone mémoire partagée"
-export const ArticleContext = createContext();
+import React, { useState } from "react";
+import { ArticleContext } from "./ArticleContext.js";
 
 //Definir le fournisseur du context
 export const ArticleProvider = ({ children }) => {

@@ -1,6 +1,6 @@
 import React, { useContext, memo } from "react";
 import "../Styles/Style.css";
-import { UserContext } from "../Context/UserContext";
+import { UserContext } from "../Context/UserContext.js";
 import FavorisItem from "../Composants/List/FavorisItem.jsx";
 import { useNavigate } from "react-router-dom";
 import Header from "../Composants/Header.jsx";
