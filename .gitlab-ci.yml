@@ -24,7 +24,7 @@ variables:
   image: node:22-alpine
   before_script:
     - corepack enable
-    - corepack prepare pnpm@latest --activate
+    - corepack install
     - pnpm install --frozen-lockfile
 
 # ──────────────── INSTALL ────────────────
