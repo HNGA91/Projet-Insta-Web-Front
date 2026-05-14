@@ -3,7 +3,6 @@ import { ArticleContext } from "../Context/ArticleContext.js";
 import { UserContext } from "../Context/UserContext.js";
 import ArticlesItem from "../Composants/List/ArticlesItem.jsx";
 import "../Styles/Style.css";
-import { useNavigate } from "react-router-dom";
 import Header from "../Composants/Header.jsx";
 import Footer from "../Composants/Footer.jsx";
 import MenuLateral1 from "../Composants/Menu/MenuLateral1.jsx";
@@ -15,9 +14,6 @@ const CataloguePage = memo(() => {
 	const [erreur, setErreur] = useState(null);
 	const [recherche, setRecherche] = useState("");
 
-	// Pour la navigation
-	const navigate = useNavigate();
-
 	// Etat qui stocke la visibilité de chaque article pour les descriptions individuelles : { idArticle: boolean }
 	const [descriptionVisible, setDescriptionVisible] = useState({});
 
@@ -26,7 +22,7 @@ const CataloguePage = memo(() => {
 
 	// Accès au context
 	const { articles, setArticles } = useContext(ArticleContext);
-	const { user, favoris, toggleFavoris, ajouterAuPanier, isLogin, totalPanier, nombreArticlesPanier } = useContext(UserContext);
+	const { user, favoris, toggleFavoris, ajouterAuPanier, isLogin } = useContext(UserContext);
 
 	useEffect(() => {
 		const chargerArticles = async () => {
@@ -67,7 +63,7 @@ const CataloguePage = memo(() => {
 
 	// Fonction pour la barre de recherche
 	const articlesFiltres = useMemo(() => {
-		return articles.filter((a) => a.name.toLowerCase().includes(recherche.toLowerCase()));
+		return articles.filter((a) => a.titre.toLowerCase().includes(recherche.toLowerCase()));
 	}, [articles, recherche]);
 
 	// Fonction Toggle pour la description de l'article
@@ -79,17 +75,17 @@ const CataloguePage = memo(() => {
 	}, []);
 
 	// Création d'un Set des IDs des favoris
-	const idsFavoris = useMemo(() => new Set(favoris.map((f) => f._id)), [favoris]);
+    const idsFavoris = useMemo(() => new Set(favoris.map((f) => String(f._id))), [favoris]);
 
 	// Fonction renderItem
 	const renderItem = useCallback(
 		({ item }) => {
-			const isVisible = descriptionVisible[item._id] || false;
-			const estFavori = idsFavoris.has(item._id);
+			const isVisible = descriptionVisible[item.id_article] || false;
+			const estFavori = idsFavoris.has(String(item.id_article));
 
 			return (
 				<ArticlesItem
-					key={item._id}
+					key={item.id_article}
 					item={item}
 					isVisible={isVisible}
 					estFavori={estFavori}
@@ -100,7 +96,7 @@ const CataloguePage = memo(() => {
 				/>
 			);
 		},
-		[descriptionVisible, idsFavoris, toggleDescription, toggleFavoris, ajouterAuPanier, isLogin]
+		[descriptionVisible, idsFavoris, toggleDescription, toggleFavoris, ajouterAuPanier, isLogin, user]
 	);
 
 	// Affiche un écran de chargement

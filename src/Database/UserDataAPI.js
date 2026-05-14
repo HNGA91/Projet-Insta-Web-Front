@@ -1,61 +1,51 @@
+// Ce fichier gère tous les appels API vers les routes MongoDB (panier + favoris)
+// L'accessToken est maintenant passé en paramètre depuis le contexte (useState)
+// et non plus récupéré depuis localStorage
+
 const API_BASE_URL = import.meta.env.VITE_SERVER_URL;
 
-const getAuthToken = () => {
+// Récupère toutes les données utilisateur (panier + favoris)
+// Appelée au login ou au chargement de l'application
+export const fetchUserData = async (email, accessToken) => {
 	try {
-		return localStorage.getItem("authToken"); // Stocké à la connexion
-	} catch (error) {
-		console.error("❌ Erreur récupération token:", error);
-		return null;
-	}
-};
-
-// Récupére toutes les données utilisateur (panier + favoris)
-// Au login ou au chargement de l'application renvoi { panier: [...], favoris: [...] } ou erreur
-export const fetchUserData = async (email) => {
-	try {
-		const token = getAuthToken();
-
 		const response = await fetch(`${API_BASE_URL}/userdata/${email}`, {
 			headers: {
-				Authorization: `Bearer ${token}`, //  Ajout du token
+				// Le token vient maintenant du useState, pas du localStorage
+				Authorization: `Bearer ${accessToken}`,
 			},
 		});
 
 		if (response.status === 401 || response.status === 403) {
-			// Token invalide → déconnecter l'utilisateur
-			localStorage.removeItem("authToken");
-			throw new Error("Session expirée");
+			throw new Error("❌ Session expirée");
 		}
 
 		if (!response.ok) {
 			throw new Error("❌ Erreur lors de la récupération des données utilisateur");
 		}
-		return await response.json(); // Renvoi les données si succès
+
+		return await response.json();
 	} catch (error) {
 		console.error("❌ Erreur fetchUserData:", error);
-		throw error; // Propage l'erreur au composant appelant
+		throw error;
 	}
 };
 
 // Sauvegarde le panier sur le serveur
-// Après chaque modification du panier les données sont mises à jour ou erreur
-export const updatePanier = async (email, panier) => {
+// Appelée après chaque modification du panier
+export const updatePanier = async (email, panier, accessToken) => {
 	try {
-		const token = getAuthToken();
-
 		const response = await fetch(`${API_BASE_URL}/userdata/${email}/panier`, {
 			method: "PUT",
 			headers: {
-				Authorization: `Bearer ${token}`, //  Ajout du token
+				Authorization: `Bearer ${accessToken}`,
 				"Content-Type": "application/json",
 			},
-			body: JSON.stringify({ panier }), // Envoie le panier complet
+			// Envoie le panier complet au back
+			body: JSON.stringify({ panier }),
 		});
 
 		if (response.status === 401 || response.status === 403) {
-			// Token invalide → déconnecter l'utilisateur
-			localStorage.removeItem("authToken");
-			throw new Error("Session expirée");
+			throw new Error("❌ Session expirée");
 		}
 
 		if (!response.ok) {
@@ -70,24 +60,21 @@ export const updatePanier = async (email, panier) => {
 };
 
 // Sauvegarde les favoris sur le serveur
-// Après chaque modification des favoris les données sont mises à jour ou erreur
-export const updateFavoris = async (email, favoris) => {
+// Appelée après chaque modification des favoris
+export const updateFavoris = async (email, favoris, accessToken) => {
 	try {
-		const token = getAuthToken();
-
 		const response = await fetch(`${API_BASE_URL}/userdata/${email}/favoris`, {
 			method: "PUT",
 			headers: {
-				Authorization: `Bearer ${token}`, //  Ajout du token
+				Authorization: `Bearer ${accessToken}`,
 				"Content-Type": "application/json",
 			},
-			body: JSON.stringify({ favoris }), // Envoie les favoris complets
+			// Envoie les favoris complets au back
+			body: JSON.stringify({ favoris }),
 		});
 
 		if (response.status === 401 || response.status === 403) {
-			// Token invalide → déconnecter l'utilisateur
-			localStorage.removeItem("authToken");
-			throw new Error("Session expirée");
+			throw new Error("❌ Session expirée");
 		}
 
 		if (!response.ok) {
@@ -102,20 +89,18 @@ export const updateFavoris = async (email, favoris) => {
 };
 
 // Supprime les données utilisateur
-export const deleteUserData = async (email) => {
+// Appelée à la déconnexion
+export const deleteUserData = async (email, accessToken) => {
 	try {
-		const token = getAuthToken();
-
 		const response = await fetch(`${API_BASE_URL}/userdata/${email}`, {
 			method: "DELETE",
 			headers: {
-				Authorization: `Bearer ${token}`, // Ajout du token
+				Authorization: `Bearer ${accessToken}`,
 			},
 		});
 
 		if (response.status === 401 || response.status === 403) {
-			localStorage.removeItem("authToken");
-			throw new Error("Session expirée");
+			throw new Error("❌ Session expirée");
 		}
 
 		if (!response.ok) {

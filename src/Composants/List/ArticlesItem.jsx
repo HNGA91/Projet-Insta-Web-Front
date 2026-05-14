@@ -6,10 +6,10 @@ const ArticlesItem = memo(({ item, isVisible, estFavori, onToggleDescription, on
 	return (
 		<div className="articleWrapper">
 			<div className="itemContainer">
-				<img src={item.image} alt={item.name} className="image" style={{ objectFit: "cover", transition: "fade 400ms" }} />
+				<img src={item.image} alt={item.titre} className="image" style={{ objectFit: "cover", transition: "fade 400ms" }} />
 
 				<div className="info">
-					<p style={{ fontSize: "15px" }}>{item.name}</p>
+					<p style={{ fontSize: "15px" }}>{item.titre}</p>
 					<p style={{ fontSize: "15px", marginTop: "4px" }}>{item.prix}€</p>
 				</div>
 
@@ -43,17 +43,14 @@ const ArticlesItem = memo(({ item, isVisible, estFavori, onToggleDescription, on
 				</div>
 			</div>
 
-			<button onClick={() => onToggleDescription(item._id)} className="descriptionToggleButton">
+			<button onClick={() => onToggleDescription(item.id_article)} className="descriptionToggleButton">
 				{isVisible ? "Masquer les détails" : "Afficher les détails"}
 			</button>
 
 			{isVisible && (
 				<div className="description-container">
 					<p style={{ marginBottom: "13px" }}>Description technique :</p>
-					<p style={{ marginBottom: "13px" }}>
-						- Matériau: Coton 100%{"\n"}- Dimensions: 30x40 cm{"\n"}- Poids: 250g{"\n"}- Couleur: Bleu marine{"\n"}- Entretien: Lavable en
-						machine
-					</p>
+					<p style={{ marginBottom: "13px" }}>{item.description}</p>
 				</div>
 			)}
 		</div>

@@ -44,10 +44,10 @@ const PanierPage = memo(() => {
 							<div className="articleWrapper">
 								{panier.map((item, index) => (
 									<div className="itemContainer" key={`${item._id}-${index}`}>
-										<img src={item.image} alt={item.name} className="image" />
+										<img src={item.image} alt={item.image_alt} className="image" />
 
 										<div className="info">
-											<p className="nom">{item.name}</p>
+											<p className="nom">{item.titre}</p>
 											<p>{item.prix} €</p>
 										</div>
 

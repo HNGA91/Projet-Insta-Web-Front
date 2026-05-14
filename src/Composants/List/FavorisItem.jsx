@@ -8,12 +8,12 @@ const FavorisItem = memo(({ item, onSupprimer, onAjouterPanier }) => {
 			<div className="itemContainer">
 				<img
 					src={item.image}
-					alt={item.name}
+					alt={item.image_alt}
 					className="image"
 					style={{ objectFit: "cover", transition: "fade 400ms" }} // Transition d'image plus fluide
 				/>
 				<div className="info" style={{ marginLeft: "12px", marginRight: "12px" }}>
-					<p>{item.name}</p>
+					<p>{item.titre}</p>
 					<p>{item.prix}€</p>
 				</div>
 

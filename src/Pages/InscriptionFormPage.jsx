@@ -397,9 +397,8 @@ const InscriptionFormPage = ({ onSuccess }) => {
 
 		// Si la validation côté client est passée, on vérifie en base de données
 		try {
-			console.log("✅ Validation côté client réussie, connexion avec JWT...");
+			console.log("✅ Validation côté client réussie, inscription en cours...");
 
-			// Appel à la NOUVELLE route d'authentification
 			const response = await fetch(`${API_BASE_URL}/auth/inscription`, {
 				method: "POST",
 				headers: {
@@ -411,32 +410,26 @@ const InscriptionFormPage = ({ onSuccess }) => {
 					email: formData.email,
 					tel: formData.tel,
 					password: formData.password,
-					source: "web",
 				}),
 			});
 
 			const result = await response.json();
 
-			if (result.success) {
-				console.log("✅ Connexion JWT réussie:", result.user);
+			if (response.ok) {
+				console.log("✅ Inscription réussie");
 
-				// 1. Stocker le token
-				localStorage.setItem("authToken", result.token);
-				localStorage.setItem("user", JSON.stringify(result.user));
-
-				// 2. Mettre à jour le contexte utilisateur et connexion automatique après inscription
-				login(result.user, result.token);
-
-				// 3. Redirection
-				alert("✅ Inscription réussie !", `Bienvenue, ${formData.prenom} !`);
-				navigate("/");
+				// On ne connecte PAS l'utilisateur automatiquement
+				// On le redirige vers la page de connexion
+				alert(`✅ Inscription réussie ! Bienvenue ${formData.prenom}, veuillez vous connecter.`);
+				navigate("/login");
 			} else {
-				alert("❌ Erreur", result.message);
-				console.log("❌ Échec de l'authentification:", result.message);
+				// Affiche le message d'erreur retourné par le back
+				alert(`❌ Erreur : ${result.message}`);
+				console.log("❌ Échec de l'inscription:", result.message);
 			}
 		} catch (error) {
 			console.error("❌ Erreur lors de l'inscription:", error);
-			alert("Une erreur est survenue lors de l'inscription.");
+			alert("❌ Une erreur est survenue lors de l'inscription.");
 		} finally {
 			setLoading(false);
 		}

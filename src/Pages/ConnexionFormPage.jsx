@@ -158,45 +158,43 @@ const ConnexionFormPage = ({ onSubmit }) => {
 
 		// Si la validation côté client est passée, on vérifie en base de données
 		try {
-			console.log("✅ Validation côté client réussie, connexion avec JWT...");
+			console.log("✅ Validation côté client réussie, connexion en cours...");
 
-			// Appel à la NOUVELLE route d'authentification
-			const response = await fetch(`${API_BASE_URL}/auth/login`, {
+			const response = await fetch(`${API_BASE_URL}/auth/connexion`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 				},
+				// credentials: "include" est OBLIGATOIRE pour recevoir
+				// et stocker le cookie refreshToken envoyé par le back
+				credentials: "include",
 				body: JSON.stringify({
 					email: formData.email,
 					password: formData.password,
-					source: "web",
+					lastLoginFrom: "web",
 				}),
 			});
 
 			const result = await response.json();
 
-			if (result.success) {
-				console.log("✅ Connexion JWT réussie:", result.user);
+			if (response.ok) {
+				console.log("✅ Connexion réussie:", result.user);
 
-				// 1. Stocker le token
-				localStorage.setItem("authToken", result.token);
-				localStorage.setItem("user", JSON.stringify(result.user));
+				// On passe l'accessToken au contexte (stocké en useState)
+				await login(result.user, result.accessToken);
 
-				// 2. Mettre à jour le contexte utilisateur et connexion
-				login(result.user, result.token);
-
-				// 3. Redirection
 				alert("✅ Connexion réussie - Bienvenue !");
 				navigate("/");
 			} else {
-				alert("❌ Erreur", result.message);
-				console.log("❌ Échec de l'authentification:", result.message);
+				// Affiche le message d'erreur retourné par le back
+				// Ex: "Email ou mot de passe incorrect" ou "Trop de tentatives..."
+				alert(`❌ ${result.message}`);
+				console.log("❌ Échec de la connexion:", result.message);
 			}
 		} catch (error) {
 			console.error("❌ Erreur lors de la connexion:", error);
-			alert("❌ Erreur", "Une erreur est survenue lors de la connexion.");
+			alert("❌ Une erreur est survenue lors de la connexion.");
 		} finally {
-			// Fin du loading (même en cas d'erreur)
 			setLoading(false);
 		}
 	};
