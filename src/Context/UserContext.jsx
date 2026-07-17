@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { updatePanier, updateFavoris, fetchUserData } from "../Database/UserDataAPI";
 import { UserContext } from "./UserContext.js";
+import Swal from "sweetalert2";
 
 export const UserProvider = ({ children }) => {
 	// =============== ÉTATS ===============
@@ -77,22 +78,26 @@ export const UserProvider = ({ children }) => {
 	};
 
 	// Synchroniser panier et favoris avec MongoDB
-	// Se déclenche à chaque modification du panier ou des favoris
+	// Debounce : sync 1 seconde après la DERNIÈRE modification
 	useEffect(() => {
 		if (!user || !accessToken) return;
-		if (!lastSync || Date.now() - lastSync < 5000) return;
+		// lastSync sert de marqueur "données initiales chargées"
+		// pour ne pas écraser MongoDB avec un panier vide au démarrage
+		if (!lastSync) return;
 
-		const syncData = async () => {
+		const timer = setTimeout(async () => {
 			try {
 				await Promise.all([updatePanier(user.email, panier, accessToken), updateFavoris(user.email, favoris, accessToken)]);
-				setLastSync(Date.now());
 				console.log("✅ Données synchronisées avec MongoDB");
 			} catch (error) {
 				console.error("❌ Erreur synchronisation:", error);
 			}
-		};
-		syncData();
-	}, [panier, favoris, user, accessToken, lastSync]);
+		}, 1000);
+
+		// Si panier/favoris changent avant 1s, on annule et on repart
+		return () => clearTimeout(timer);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [panier, favoris]);
 
 	// Fonction de connexion
 	// Appelée depuis ConnexionFormPage après une connexion réussie
@@ -150,12 +155,21 @@ export const UserProvider = ({ children }) => {
 
 	// Ajouter un article au panier (ou augmenter sa quantité)
 	const ajouterAuPanier = useCallback((article) => {
+		// On aplatit le titre du produit (catégorie) dans un champ simple "produitTitre"
+		// car l'objet imbriqué "produit" (venant de MySQL) n'est pas conservé par Mongoose
+		// une fois synchronisé puis rechargé depuis MongoDB — ce qui cassait les images
+		// dans le Panier/Favoris après un rechargement de page.
+		const produitTitre = article.produit?.titre || article.produitTitre;
+
 		setPanier((prev) => {
-			const existe = prev.find((item) => item._id === article._id);
+			const articleId = String(article._id || article.id_article);
+			const existe = prev.find((item) => String(item._id || item.id_article) === articleId);
 			if (existe) {
-				return prev.map((item) => (item._id === article._id ? { ...item, quantite: (item.quantite || 1) + 1 } : item));
+				return prev.map((item) =>
+					String(item._id || item.id_article) === articleId ? { ...item, quantite: (item.quantite || 1) + 1 } : item,
+				);
 			} else {
-				return [...prev, { ...article, quantite: 1 }];
+				return [...prev, { ...article, _id: String(article._id || article.id_article), quantite: 1, produitTitre }];
 			}
 		});
 	}, []);
@@ -163,13 +177,25 @@ export const UserProvider = ({ children }) => {
 	// Supprimer un article du panier (ou diminuer sa quantité)
 	const supprimerDuPanier = useCallback((id) => {
 		setPanier((prev) =>
-			prev.map((item) => (item._id === id ? { ...item, quantite: (item.quantite || 1) - 1 } : item)).filter((item) => (item.quantite || 0) > 0),
+			prev
+				.map((item) => (String(item._id || item.id_article) === String(id) ? { ...item, quantite: (item.quantite || 1) - 1 } : item))
+				.filter((item) => (item.quantite || 0) > 0),
 		);
 	}, []);
 
 	// Vider entièrement le panier avec confirmation
-	const viderLePanier = useCallback(() => {
-		if (window.confirm("⚠️ Voulez-vous vraiment vider le panier ?")) {
+	const viderLePanier = useCallback(async () => {
+		const result = await Swal.fire({
+			title: "Vider le panier ?",
+			text: "Tous les articles seront retirés.",
+			icon: "warning",
+			showCancelButton: true,
+			confirmButtonColor: "#e74c3c",
+			cancelButtonColor: "#aaa",
+			confirmButtonText: "Oui, vider",
+			cancelButtonText: "Annuler",
+		});
+		if (result.isConfirmed) {
 			setPanier([]);
 		}
 	}, []);
@@ -180,16 +206,29 @@ export const UserProvider = ({ children }) => {
 	const toggleFavoris = useCallback(
 		(article) => {
 			if (!user) {
-				alert("⛔ Connexion requise - Veuillez vous connecter pour ajouter aux favoris");
+				Swal.fire({
+					title: "Connexion requise",
+					text: "Veuillez vous connecter pour ajouter aux favoris.",
+					icon: "warning",
+					confirmButtonColor: "#09107e",
+					confirmButtonText: "OK",
+				});
 				return;
 			}
+
+			// On aplatit le titre du produit (catégorie) dans un champ simple "produitTitre"
+			// car l'objet imbriqué "produit" (venant de MySQL) n'est pas conservé par Mongoose
+			// une fois synchronisé puis rechargé depuis MongoDB — ce qui cassait les images
+			// dans le Panier/Favoris après un rechargement de page.
+			const produitTitre = article.produit?.titre || article.produitTitre;
+
 			setFavoris((prev) => {
 				const existe = prev.some((item) => item._id === String(article.id_article));
 				if (existe) {
 					return prev.filter((item) => item._id !== String(article.id_article));
 				} else {
 					// Normalisation : on s'assure que _id est défini pour MongoDB
-					return [...prev, { ...article, _id: String(article.id_article) }];
+					return [...prev, { ...article, _id: String(article.id_article), produitTitre }];
 				}
 			});
 		},

@@ -188,7 +188,7 @@ describe("Page de connexion", () => {
 
 		// ========== ASSERT (Vérification) ==========
 		// Vérifie que le message d'erreur apparaît
-		expect(await screen.findByText(/⚠️ Le champ "Mot de passe" doit être supérieur ou égale à 12/i)).toBeInTheDocument();
+		expect(await screen.findByText(/⚠️ Le mot de passe ou l'email est invalide/i)).toBeInTheDocument();
 		// Optionnel : vérifie que l'inscription n'a pas réussi
 		expect(mockOnSubmit).not.toHaveBeenCalled();
 	});
@@ -217,7 +217,7 @@ describe("Page de connexion", () => {
 
 		// ========== ASSERT (Vérification) ==========
 		// Vérifie que le message d'erreur apparaît
-		expect(await screen.findByText(/⚠️ Le mot de passe est invalide/i)).toBeInTheDocument();
+		expect(await screen.findByText(/⚠️ Le mot de passe ou l'email est invalide/i)).toBeInTheDocument();
 		// Optionnel : vérifie que l'inscription n'a pas réussi
 		expect(mockOnSubmit).not.toHaveBeenCalled();
 	});
@@ -243,7 +243,7 @@ describe("Page de connexion", () => {
 
 		// ========== ASSERT (Vérification) ==========
 		// Vérifie que le message d'erreur apparaît
-		expect(await screen.findByText(/⚠️ Le mot de passe est invalide/i)).toBeInTheDocument();
+		expect(await screen.findByText(/⚠️ Le mot de passe ou l'email est invalide/i)).toBeInTheDocument();
 		// Optionnel : vérifie que l'inscription n'a pas réussi
 		expect(mockOnSubmit).not.toHaveBeenCalled();
 	});
@@ -269,7 +269,7 @@ describe("Page de connexion", () => {
 
 		// ========== ASSERT (Vérification) ==========
 		// Vérifie que le message d'erreur apparaît
-		expect(await screen.findByText(/⚠️ Le mot de passe est invalide/i)).toBeInTheDocument();
+		expect(await screen.findByText(/⚠️ Le mot de passe ou l'email est invalide/i)).toBeInTheDocument();
 		// Optionnel : vérifie que l'inscription n'a pas réussi
 		expect(mockOnSubmit).not.toHaveBeenCalled();
 	});
@@ -295,7 +295,7 @@ describe("Page de connexion", () => {
 
 		// ========== ASSERT (Vérification) ==========
 		// Vérifie que le message d'erreur apparaît
-		expect(await screen.findByText(/⚠️ Le mot de passe est invalide/i)).toBeInTheDocument();
+		expect(await screen.findByText(/⚠️ Le mot de passe ou l'email est invalide/i)).toBeInTheDocument();
 		// Optionnel : vérifie que l'inscription n'a pas réussi
 		expect(mockOnSubmit).not.toHaveBeenCalled();
 	});
@@ -321,10 +321,10 @@ describe("Page de connexion", () => {
 		// ========== ACT (Action) ==========
 		// On attend que le useEffect ait activé le bouton avant de cliquer
 		await waitFor(() => {
-			expect(screen.getByRole("button")).not.toBeDisabled();
+			expect(screen.getByRole("button", { name: /se connecter/i })).not.toBeDisabled();
 		});
 
-		await user.click(screen.getByRole("button"));
+		await user.click(screen.getByRole("button", { name: /se connecter/i }));
 
 		// ========== ASSERT (Vérification) ==========
 		// Vérifie que la connexion a réussi

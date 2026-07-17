@@ -29,6 +29,11 @@ const Menu = () => {
 								Connexion
 							</Link>
 						</li>
+						<li className="nav-list">
+							<Link to="/contact" className="nav-link">
+								Contact
+							</Link>
+						</li>
 					</>
 				)}
 				{isLogin && (
@@ -41,6 +46,11 @@ const Menu = () => {
 						<li className="nav-list">
 							<Link to="/profil" className="nav-link">
 								Mon compte
+							</Link>
+						</li>
+						<li className="nav-list">
+							<Link to="/contact" className="nav-link">
+								Contact
 							</Link>
 						</li>
 					</>

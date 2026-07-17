@@ -6,6 +6,8 @@ import Header from "../Composants/Header.jsx";
 import Footer from "../Composants/Footer.jsx";
 import MenuLateral1 from "../Composants/Menu/MenuLateral1.jsx";
 import MenuLateral2 from "../Composants/Menu/MenuLateral2.jsx";
+import Swal from "sweetalert2"; 
+import { Helmet } from "react-helmet-async";
 
 const API_BASE_URL = import.meta.env.VITE_SERVER_URL;
 
@@ -57,7 +59,7 @@ const ConnexionFormPage = ({ onSubmit }) => {
 
 	// Les différents Regex utiles aux vérifications
 	const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-	const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z0-9!@#$%^&*]{12,}$/;
+	const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$%^&*]).{12,}$/;
 
 	//...prev: opérateur de décomposition(spread operator)
 	//...prev permet de conserver les autres champs du formulaire inchangés
@@ -94,9 +96,9 @@ const ConnexionFormPage = ({ onSubmit }) => {
 		if (value.trim() === "") {
 			setErrorPassword('⚠️ Le champ "Mot de passe" ne peut pas être vide');
 		} else if (value.length < 12) {
-			setErrorPassword('⚠️ Le champ "Mot de passe" doit être supérieur ou égale à 12');
+			setErrorPassword("⚠️ Le mot de passe ou l'email est invalide");
 		} else if (!passwordRegex.test(value.trim())) {
-			setErrorPassword("⚠️ Le mot de passe est invalide");
+			setErrorPassword("⚠️ Le mot de passe ou l'email est invalide");
 		} else {
 			setErrorPassword("");
 		}
@@ -130,10 +132,10 @@ const ConnexionFormPage = ({ onSubmit }) => {
 			setErrorPassword('⚠️ Le champ "Mot de passe" ne peut pas être vide');
 			isValid = false;
 		} else if (formData.password.length < 12) {
-			setErrorPassword('⚠️ Le champ "Mot de passe" doit être supérieur ou égale à 12');
+			setErrorPassword("⚠️ Le mot de passe ou l'email est invalide");
 			isValid = false;
 		} else if (!passwordRegex.test(formData.password.trim())) {
-			setErrorPassword("⚠️ Le mot de passe est invalide");
+			setErrorPassword("⚠️ Le mot de passe ou l'email est invalide");
 			isValid = false;
 		} else {
 			setErrorPassword("");
@@ -182,18 +184,27 @@ const ConnexionFormPage = ({ onSubmit }) => {
 
 				// On passe l'accessToken au contexte (stocké en useState)
 				await login(result.user, result.accessToken);
-
-				alert("✅ Connexion réussie - Bienvenue !");
+                
 				navigate("/");
 			} else {
 				// Affiche le message d'erreur retourné par le back
 				// Ex: "Email ou mot de passe incorrect" ou "Trop de tentatives..."
-				alert(`❌ ${result.message}`);
 				console.log("❌ Échec de la connexion:", result.message);
+                Swal.fire({
+					title: "Erreur de connexion",
+					text: result.message,
+					icon: "error",
+					confirmButtonColor: "#e74c3c",
+				});
 			}
 		} catch (error) {
 			console.error("❌ Erreur lors de la connexion:", error);
-			alert("❌ Une erreur est survenue lors de la connexion.");
+			Swal.fire({
+				title: "Erreur",
+				text: "Une erreur est survenue lors de la connexion.",
+				icon: "error",
+				confirmButtonColor: "#e74c3c",
+			});
 		} finally {
 			setLoading(false);
 		}
@@ -201,11 +212,19 @@ const ConnexionFormPage = ({ onSubmit }) => {
 
 	return (
 		<>
+			<Helmet>
+				<title>Tech City — Connexion</title>
+				<meta name="description" content="Connectez-vous à votre compte Tech City pour accéder à vos commandes, favoris et panier." />
+				<meta property="og:title" content="Tech City — Connexion" />
+				<meta property="og:description" content="Connectez-vous à votre compte Tech City pour accéder à vos commandes, favoris et panier." />
+				<meta property="og:type" content="website" />
+				<meta property="og:url" content="https://techcity.com/login" />
+			</Helmet>
 			<Header />
 			<main className="main-content">
 				<MenuLateral1 />
 				<div className="content-section">
-					<h2>Veuillez remplir les champs afin de vous authentifier</h2>
+					<h1>Veuillez remplir les champs afin de vous authentifier</h1>
 
 					<form className="form" onSubmit={handleSubmit} data-testid="form">
 						<label className="form-label" htmlFor="email">
@@ -267,6 +286,25 @@ const ConnexionFormPage = ({ onSubmit }) => {
 								{isValid ? "Se connecter" : "Champs invalides"}
 							</button>
 						)}
+						<br />
+						<br />
+
+						{/* Lien mot de passe oublié */}
+						<div style={{ textAlign: "left", marginBottom: "10px" }}>
+							<button
+								type="button"
+								onClick={() => navigate("/mot-de-passe-oublie")}
+								style={{
+									background: "none",
+									border: "none",
+									cursor: "pointer",
+									fontSize: "0.9rem",
+									padding: 0,
+								}}
+							>
+								Mot de passe oublié ?
+							</button>
+						</div>
 					</form>
 				</div>
 				<MenuLateral2 />

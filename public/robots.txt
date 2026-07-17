@@ -1,0 +1,14 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /profil/
+Disallow: /panier
+Disallow: /favoris
+Disallow: /paiement-success
+Disallow: /paiement-cancel
+Disallow: /reset-password
+
+Allow: /
+Allow: /catalogue/
+Allow: /contact
+Allow: /inscription
+Allow: /login

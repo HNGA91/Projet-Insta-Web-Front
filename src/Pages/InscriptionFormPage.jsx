@@ -6,6 +6,8 @@ import Footer from "../Composants/Footer.jsx";
 import MenuLateral1 from "../Composants/Menu/MenuLateral1.jsx";
 import MenuLateral2 from "../Composants/Menu/MenuLateral2.jsx";
 import "../Styles/Style.css";
+import Swal from "sweetalert2"; 
+import { Helmet } from "react-helmet-async";
 
 const API_BASE_URL = import.meta.env.VITE_SERVER_URL;
 
@@ -120,7 +122,7 @@ const InscriptionFormPage = ({ onSuccess }) => {
 	// Les différents Regex utiles aux vérifications
 	const nameRegex = /^[A-Za-zÀ-ÖØ-öø-ÿ\s'-]+$/;
 	const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-	const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{12,}$/;
+	const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$%^&*]).{12,}$/;
 
 	// Fonction pour vérifier tous les critères du mot de passe
 	const checkPasswordCriteria = (password) => {
@@ -420,16 +422,25 @@ const InscriptionFormPage = ({ onSuccess }) => {
 
 				// On ne connecte PAS l'utilisateur automatiquement
 				// On le redirige vers la page de connexion
-				alert(`✅ Inscription réussie ! Bienvenue ${formData.prenom}, veuillez vous connecter.`);
 				navigate("/login");
 			} else {
 				// Affiche le message d'erreur retourné par le back
-				alert(`❌ Erreur : ${result.message}`);
-				console.log("❌ Échec de l'inscription:", result.message);
+				console.log("❌ Échec de l'inscription", result.message);
+                Swal.fire({
+					title: "Échec de l'inscription:",
+					text: result.message,
+					icon: "error",
+					confirmButtonColor: "#e74c3c",
+				});
 			}
 		} catch (error) {
 			console.error("❌ Erreur lors de l'inscription:", error);
-			alert("❌ Une erreur est survenue lors de l'inscription.");
+			Swal.fire({
+				title: "Erreur",
+				text: "Une erreur est survenue lors de l'inscription.",
+				icon: "error",
+				confirmButtonColor: "#e74c3c",
+			});
 		} finally {
 			setLoading(false);
 		}
@@ -460,11 +471,19 @@ const InscriptionFormPage = ({ onSuccess }) => {
 
 	return (
 		<>
+			<Helmet>
+				<title>Tech City — Inscription</title>
+				<meta name="description" content="Créez votre compte Tech City et profitez d'une expérience d'achat personnalisée." />
+				<meta property="og:title" content="Tech City — Inscription" />
+				<meta property="og:description" content="Créez votre compte Tech City et profitez d'une expérience d'achat personnalisée." />
+				<meta property="og:type" content="website" />
+				<meta property="og:url" content="https://techcity.com/inscription" />
+			</Helmet>
 			<Header />
 			<main className="main-content">
 				<MenuLateral1 />
 				<div className="content-section">
-					<h2>Veuillez remplir le champs afin de compléter votre inscription</h2>
+					<h1>Veuillez remplir le champs afin de compléter votre inscription</h1>
 					<form className="form" onSubmit={handleSubmit} data-testid="form">
 						<label className="form-label" htmlFor="nom">
 							Nom :

@@ -18,25 +18,27 @@ const Header = () => {
 
 	return (
 		<header className="header">
-				<div className="headerLeft"></div>
-				<div className="headerCenter">
-					<h1>Bienvenue sur ma page</h1>
-					<Menu />
-				</div>
-				<div className="headerRight">
-					{isLogin && (
-						<div className="headerRightButtons">
-							<button className="cartBadge" onClick={() => navigate("/panier")}>
-								<p className="cartText">
-									🛒 {nombreArticlesPanier} | {totalPanier.toFixed(2)} €
-								</p>
-							</button>
-							<button className="disconnectBadge" onClick={handleDeconnexion}>
-								<p className="disconnectText">Se déconnecter</p>
-							</button>
-						</div>
-					)}
-				</div>
+			<div className="headerLeft">
+				<h1>Tech City</h1>
+                <p>Take your Tech</p>
+			</div>
+			<div className="headerCenter">
+				<Menu />
+			</div>
+			<div className="headerRight">
+				{isLogin && (
+					<div className="headerRightButtons">
+						<button className="cartBadge" onClick={() => navigate("/panier")}>
+							<p className="cartText">
+								🛒 {nombreArticlesPanier} | {totalPanier.toFixed(2)} €
+							</p>
+						</button>
+						<button className="disconnectBadge" onClick={handleDeconnexion}>
+							<p className="disconnectText">Se déconnecter</p>
+						</button>
+					</div>
+				)}
+			</div>
 		</header>
 	);
 }

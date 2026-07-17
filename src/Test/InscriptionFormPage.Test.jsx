@@ -119,7 +119,7 @@ describe("Page d'inscription", () => {
 
 		// ========== ASSERT (Vérification) ==========
 		// Vérifie que le message d'erreur apparaît
-		expect(await screen.findByText(/⚠️ Le mot de passe ne respecte pas tous les critères/i)).toBeInTheDocument();
+		expect(await screen.findByText(/⚠️ Le mot de passe est invalide/i)).toBeInTheDocument();
 		// Optionnel : vérifie que l'inscription n'a pas réussi
 		expect(onSuccessMock).not.toHaveBeenCalled();
 	});
@@ -149,7 +149,7 @@ describe("Page d'inscription", () => {
 
 		// ========== ASSERT (Vérification) ==========
 		// Vérifie que le message d'erreur apparaît
-		expect(await screen.findByText(/⚠️ Le mot de passe ne respecte pas tous les critères/i)).toBeInTheDocument();
+		expect(await screen.findByText(/⚠️ Le mot de passe est invalide/i)).toBeInTheDocument();
 		// Optionnel : vérifie que l'inscription n'a pas réussi
 		expect(onSuccessMock).not.toHaveBeenCalled();
 	});
@@ -490,7 +490,7 @@ describe("Page d'inscription", () => {
 		// ========== ACT (Action) ==========
 		// Soumission du formulaire
 		submitForm();
-        
+
 		// ========== ASSERT (Vérification) ==========
 		// Vérifie que le message d'erreur apparaît
 		expect(await screen.findByText((content) => content.includes("Le numéro doit contenir 10 chiffres"))).toBeInTheDocument();
