@@ -1,6 +1,6 @@
-# 🛒 MyProject Web Fullstack
+# 🛒 Tech City — Frontend
 
-Projet e-commerce fullstack développé avec React JS (frontend), Node.js / Express (backend), MongoDB et MySQL (bases de données).
+Application e-commerce frontend développée avec React (Vite), spécialisée dans la vente de composants et périphériques informatiques.
 
 ---
 
@@ -27,86 +27,86 @@ Projet e-commerce fullstack développé avec React JS (frontend), Node.js / Expr
 
 ## 📖 Aperçu du projet
 
-MyProject est une application e-commerce complète permettant aux utilisateurs de :
+Tech City est une application e-commerce complète permettant aux utilisateurs de :
 
-- Parcourir un catalogue d'articles
-- Gérer un panier d'achat (ajout, suppression, quantités)
+- Parcourir un catalogue de produits (clavier, souris, RAM...)
+- Gérer un panier d'achat (ajout, suppression, quantités, synchronisé avec le backend)
 - Sauvegarder des articles en favoris
-- Créer un compte et se connecter
-- Consulter et modifier leur profil
+- Créer un compte, se connecter et gérer leur profil (informations, adresses, sécurité)
+- Consulter l'historique de leurs commandes et télécharger leurs factures
+- Payer en ligne de façon sécurisée via Stripe
+- Contacter l'équipe via un formulaire de contact
+
+Une interface d'administration dédiée permet également la gestion des produits, articles, commandes et utilisateurs.
 
 ---
 
 ## 🛠️ Technologies utilisées
 
-### Frontend
 | Technologie | Rôle |
-|
-| React JS | Framework UI |
+|---|---|
+| React 19 | Framework UI |
 | Vite | Bundler / Dev server |
-| React Router | Navigation SPA |
-| Context API | Gestion d'état global |
+| React Router v7 | Navigation SPA |
+| Context API | Gestion d'état global (utilisateur, articles) |
+| react-helmet-async | Gestion des balises SEO (title, meta, Open Graph) |
+| SweetAlert2 | Alertes et confirmations utilisateur |
+| Stripe.js | Intégration du paiement en ligne |
+| Axios | Appels HTTP vers l'API |
 | Vitest | Tests unitaires |
-| Testing Library | Tests de composants React |
-
-### Backend
-| Technologie | Rôle |
-|
-| Node.js | Environnement d'exécution |
-| Express | Framework HTTP |
-| MongoDB | Base de données NoSQL (favoris, panier) |
-| MySQL | Base de données relationnelle (articles, utilisateurs) |
-| JWT | Authentification par token |
+| React Testing Library | Tests de composants React |
 
 ---
 
 ## 🗂️ Architecture du projet
 
 ```
-MyProjectWebFullstack/
+MyProjectWebFrontend/
 │
-├── MyProjectWebFrontend/          # Application React
-│   ├── src/
-│   │   ├── assets/                # Images, icônes
-│   │   ├── Composants/            # Composants réutilisables
-│   │   │   ├── List/              # ArticlesItem, FavorisItem
-│   │   │   └── Menu/              # Menu, MenuLateral1, MenuLateral2
-│   │   ├── Context/               # Contextes React globaux
-│   │   │   ├── ArticleContext.jsx # État des articles
-│   │   │   └── UserContext.jsx    # État utilisateur, panier, favoris
-│   │   ├── Database/              # Couche API
-│   │   │   └── UserDataAPI.js     # Appels vers le backend
-│   │   ├── Navigation/            # Routeur de l'application
-│   │   ├── Pages/                 # Pages de l'application
-│   │   │   ├── CataloguePage.jsx
-│   │   │   ├── ConnexionFormPage.jsx
-│   │   │   ├── FavorisPage.jsx
-│   │   │   ├── InscriptionFormPage.jsx
-│   │   │   ├── PanierPage.jsx
-│   │   │   └── ProfilPage.jsx
-│   │   ├── Styles/                # CSS global
-│   │   └── Test/                  # Tests unitaires
-│   ├── .gitlab-ci.yml             # Pipeline CI/CD GitLab
-│   ├── vite.config.js
-│   └── vitest.config.js
+├── public/
+│   ├── Images/                    # Images statiques
+│   └── robots.txt                 # Directives pour les moteurs de recherche
 │
-└── MyProjectBackend/              # API Node.js / Express
-    ├── src/
-    │   ├── Middleware/            # Authentification JWT
-    │   ├── Models/                # Modèles de données
-    │   │   ├── Article.js
-    │   │   ├── Produit.js
-    │   │   ├── User.js
-    │   │   └── UserData.js
-    │   ├── Routes/                # Routes de l'API
-    │   │   ├── Articles.js
-    │   │   ├── AuthRoutes.js
-    │   │   ├── Produits.js
-    │   │   └── UserData.js
-    │   ├── DB.js                  # Connexion bases de données
-    │   ├── ExpressApp.js          # Configuration Express
-    │   └── Server.js              # Point d'entrée serveur
-    └── .env                       # Variables d'environnement (non versionné)
+├── src/
+│   ├── __mocks__/                 # Mocks des contextes pour les tests
+│   │   ├── ArticleContext.js
+│   │   └── UserContext.js
+│   │
+│   ├── Composants/                # Composants réutilisables
+│   │   ├── List/                  # ArticlesItem, FavorisItem
+│   │   ├── Menu/                  # Menu, MenuLateral (client/admin)
+│   │   ├── Header.jsx
+│   │   └── Footer.jsx
+│   │
+│   ├── Context/                   # Contextes React globaux
+│   │   ├── ArticleContext.jsx     # État des articles
+│   │   └── UserContext.jsx        # État utilisateur, panier, favoris
+│   │
+│   ├── Database/
+│   │   └── UserDataAPI.js         # Appels vers l'API (panier, favoris)
+│   │
+│   ├── Navigation/
+│   │   ├── RouterNavigator.jsx    # Routeur de l'application
+│   │   └── ProtectedRoute.jsx     # Protection des routes (auth / admin)
+│   │
+│   ├── Pages/
+│   │   ├── Admin/                 # Articles, Commandes, Produits, Utilisateurs
+│   │   ├── Client/                # Adresses, Commandes, Sécurité, Profil
+│   │   ├── CataloguePage.jsx
+│   │   ├── ConnexionFormPage.jsx
+│   │   ├── InscriptionFormPage.jsx
+│   │   ├── FavorisPage.jsx
+│   │   ├── PanierPage.jsx
+│   │   └── ContactPage.jsx
+│   │
+│   ├── Styles/
+│   │   └── Style.css
+│   │
+│   └── Test/                      # Tests unitaires
+│
+├── .gitlab-ci.yml                 # Pipeline CI/CD GitLab
+├── vite.config.js
+└── vitest.config.js
 ```
 
 ---
@@ -117,8 +117,8 @@ Avant de commencer, assure-toi d'avoir installé :
 
 - [Node.js](https://nodejs.org/) v18 ou supérieur
 - [pnpm](https://pnpm.io/) (`npm install -g pnpm`)
-- [MongoDB](https://www.mongodb.com/) (local ou Atlas)
-- [MySQL](https://www.mysql.com/) (local ou cloud)
+- [mkcert](https://github.com/FiloSottile/mkcert) pour générer des certificats SSL locaux (développement en HTTPS)
+- Une instance du [backend Tech City](https://github.com/HNGA91/Projet-Insta-Back) fonctionnelle
 - [Git](https://git-scm.com/)
 
 ---
@@ -128,22 +128,23 @@ Avant de commencer, assure-toi d'avoir installé :
 ### 1. Cloner le dépôt
 
 ```bash
-git clone https://gitlab.com/myprojectwebfullstack/myprojectwebfrontend.git
-cd myprojectwebfrontend
+git clone https://github.com/HNGA91/Projet-Insta-Web-Front.git
+cd Projet-Insta-Web-Front
 ```
 
 ### 2. Installer les dépendances
 
-**Frontend :**
 ```bash
-cd MyProjectWebFrontend
 pnpm install
 ```
 
-**Backend :**
+### 3. Générer les certificats SSL locaux (mkcert)
+
+Le projet utilise HTTPS en local (nécessaire pour tester les cookies sécurisés). Si les certificats n'existent pas encore, `vite.config.js` bascule automatiquement en HTTP simple — pense à générer les tiens si tu veux un environnement identique à la production :
+
 ```bash
-cd MyProjectBackend
-npm install
+mkcert -install
+mkcert localhost
 ```
 
 ---
@@ -154,18 +155,7 @@ npm install
 
 ### Frontend — `.env`
 ```env
-VITE_API_URL=http://localhost:5000
-```
-
-### Backend — `.env`
-```env
-PORT=5000
-MONGODB_URI=mongodb://localhost:27017/myproject
-MYSQL_HOST=localhost
-MYSQL_USER=root
-MYSQL_PASSWORD=ton_mot_de_passe
-MYSQL_DATABASE=myproject
-JWT_SECRET=ta_clef_secrete_jwt
+VITE_SERVER_URL=https://localhost:3000
 ```
 
 ---
@@ -174,23 +164,19 @@ JWT_SECRET=ta_clef_secrete_jwt
 
 ### Frontend (port 5173)
 ```bash
-cd MyProjectWebFrontend
 pnpm run dev
 ```
 
-### Backend (port 5000)
-```bash
-cd MyProjectBackend
-npm run start
-```
+### Backend (port 3000)
+Voir le [README du backend](https://github.com/HNGA91/Projet-Insta-Back) pour les instructions de lancement.
 
-L'application sera accessible sur : **http://localhost:5173**
+L'application sera accessible sur : **https://localhost:5173**
 
 ---
 
 ## 🧪 Tests
 
-Les tests unitaires sont écrits avec **Vitest** et **Testing Library**.
+Les tests unitaires sont écrits avec **Vitest** et **React Testing Library**.
 
 ### Lancer les tests
 ```bash
@@ -207,10 +193,11 @@ pnpm run test:coverage
 ### Fichiers de tests
 ```
 src/Test/
-├── RouterNavigator.test.jsx      # Tests la navigation au sein de l'application
-├── ConnexionFormPage.Test.jsx    # Tests formulaire de connexion
-├── InscriptionFormPage.Test.jsx  # Tests formulaire d'inscription
-└── setupTest.js                  # Configuration globale des tests
+├── RouterNavigator.test.jsx        # Tests de la navigation
+├── ConnexionFormPage.test.jsx      # Tests du formulaire de connexion
+├── InscriptionFormPage.test.jsx    # Tests du formulaire d'inscription
+├── TestUtils.jsx                   # Utilitaires de rendu avec providers
+└── setupTest.js                    # Configuration globale des tests
 ```
 
 ---
@@ -226,7 +213,7 @@ install → lint → test → build → deploy
 ```
 
 | Étape | Description |
-|
+|---|---|
 | `install` | Installation des dépendances via `pnpm install` |
 | `lint` | Vérification qualité du code avec ESLint |
 | `test` | Exécution des tests Vitest + rapport de couverture |
