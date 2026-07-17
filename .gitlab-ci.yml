@@ -68,7 +68,7 @@ test:vitest:
     expire_in: 7 days
   only:
     - merge_requests
-    - main
+    - master
     - develop
 
 # ──────────────── BUILD ────────────────
@@ -84,7 +84,7 @@ build:
       - dist/
     expire_in: 7 days
   only:
-    - main
+    - master
     - develop
 
 # ──────────────── DEPLOY ────────────────
@@ -103,7 +103,7 @@ pages:
       - public
     expire_in: 30 days
   only:
-    - main
+    - master
   environment:
     name: production
     url: https://$CI_PROJECT_PATH_SLUG.gitlab.io/$CI_PROJECT_NAME/
