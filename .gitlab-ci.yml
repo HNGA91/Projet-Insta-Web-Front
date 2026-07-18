@@ -2,6 +2,9 @@
 # GitLab CI/CD - Frontend (React + Vitest)
 # ============================================
 
+# Liste ordonnée des étapes du pipeline. GitLab exécute les jobs
+# stage par stage (tous les jobs d'un même stage en parallèle),
+# et passe au stage suivant seulement si le précédent a réussi.
 stages:
   - install
   - lint
@@ -9,25 +12,39 @@ stages:
   - build
   - deploy
 
+# Cache partagé entre les pipelines pour accélérer les exécutions
+# suivantes (évite de retélécharger les dépendances à chaque fois).
+# La clé est basée sur le nom de la branche/MR (CI_COMMIT_REF_SLUG),
+# donc chaque branche a son propre cache.
 cache:
   key: ${CI_COMMIT_REF_SLUG}
   paths:
-    - .pnpm-store/
-    - node_modules/
+    - .pnpm-store/   # store local de pnpm (packages téléchargés)
+    - node_modules/  # dépendances installées
 
+# Variables d'environnement disponibles dans tous les jobs
 variables:
   NODE_ENV: test
   PNPM_HOME: "/root/.local/share/pnpm"
 
-# Template commun à tous les jobs
+# Template commun à tous les jobs (ancre YAML &default_node_job),
+# réutilisé via "<<: *default_node_job" pour éviter la duplication.
 .default_node_job: &default_node_job
-  image: node:22-alpine
+  image: node:22-alpine   # image Docker légère avec Node.js 22
   before_script:
+    # corepack gère les gestionnaires de paquets (pnpm, yarn...)
+    # fournis avec Node sans avoir à les installer globalement.
     - corepack enable
+    # Installe la version de pnpm définie dans package.json (packageManager),
+    # nécessaire depuis pnpm v10 qui bloque les scripts de build par défaut.
     - corepack install
+    # Installe les dépendances en respectant strictement le pnpm-lock.yaml
+    # (échoue si le lockfile est désynchronisé avec package.json).
     - pnpm install --frozen-lockfile
 
 # ──────────────── INSTALL ────────────────
+# Job dédié à l'installation, dont le seul but est de rendre
+# node_modules disponible en artifact pour les jobs suivants.
 install-dependencies:
   <<: *default_node_job
   stage: install
@@ -36,19 +53,21 @@ install-dependencies:
   artifacts:
     paths:
       - node_modules/
-    expire_in: 1 hour
+    expire_in: 1 hour   # artifact temporaire, inutile de le garder longtemps
 
 # ──────────────── LINT ────────────────
+# Vérifie la qualité/style du code avec ESLint.
 lint:
   <<: *default_node_job
   stage: lint
-  needs: [install-dependencies]
+  needs: [install-dependencies]   # attend uniquement ce job (pas tout le stage précédent)
   script:
     - echo "🔍 Vérification ESLint..."
     - pnpm run lint
-  allow_failure: false
+  allow_failure: false   # si le lint échoue, le pipeline s'arrête (bloquant)
 
 # ──────────────── TEST ────────────────
+# Exécute les tests unitaires avec Vitest et calcule la couverture de code.
 test:vitest:
   <<: *default_node_job
   stage: test
@@ -56,26 +75,33 @@ test:vitest:
   script:
     - echo "🧪 Exécution des tests unitaires..."
     - pnpm run test:coverage
+  # Expression régulière utilisée par GitLab pour extraire le pourcentage
+  # de couverture depuis la sortie du terminal et l'afficher dans l'UI.
   coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
   artifacts:
-    when: always
+    when: always   # garde les artifacts même si les tests échouent (utile pour debug)
     paths:
       - coverage/
     reports:
+      # Permet à GitLab d'afficher la couverture directement dans les
+      # merge requests (annotations ligne par ligne).
       coverage_report:
         coverage_format: cobertura
         path: coverage/cobertura-coverage.xml
     expire_in: 7 days
+  # Ce job ne se lance que sur les merge requests et les branches master/develop
+  # (évite de faire tourner les tests sur toutes les branches secondaires).
   only:
     - merge_requests
     - master
     - develop
 
 # ──────────────── BUILD ────────────────
+# Compile l'application pour la production (bundle optimisé dans dist/).
 build:
   <<: *default_node_job
   stage: build
-  needs: [test:vitest]
+  needs: [test:vitest]   # ne build que si les tests sont passés
   script:
     - echo "🏗️ Build de production..."
     - pnpm run build
@@ -83,27 +109,38 @@ build:
     paths:
       - dist/
     expire_in: 7 days
+  # Le build ne tourne que sur master/develop, pas sur les MR
+  # (évite de builder inutilement sur chaque branche de travail).
   only:
     - master
     - develop
 
 # ──────────────── DEPLOY ────────────────
+# Publie le build sur GitLab Pages (hébergement statique).
 pages:
   <<: *default_node_job
   stage: deploy
   needs: [build]
   script:
     - echo "🚀 Déploiement GitLab Pages..."
+    # GitLab Pages exige que les fichiers à publier soient dans un
+    # dossier nommé exactement "public" à la racine du projet.
     - mkdir -p public
     - cp -r dist/* public/
     - mkdir -p public/coverage
+    # Copie le rapport de couverture HTML dans public/coverage pour
+    # pouvoir le consulter en ligne. Le "|| true" évite de faire
+    # échouer le job si le dossier lcov-report n'existe pas.
     - cp -r coverage/lcov-report/* public/coverage/ 2>/dev/null || true
   artifacts:
     paths:
       - public
     expire_in: 30 days
+  # Déploiement uniquement depuis master, la branche de production.
   only:
     - master
+  # Déclare un environnement GitLab nommé "production", avec l'URL
+  # d'accès générée automatiquement (visible dans Déploiements > Environnements).
   environment:
     name: production
     url: https://$CI_PROJECT_PATH_SLUG.gitlab.io/$CI_PROJECT_NAME/
