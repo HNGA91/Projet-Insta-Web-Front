@@ -12,3 +12,4 @@ Allow: /catalogue/
 Allow: /contact
 Allow: /inscription
 Allow: /login
+Allow: /cgu

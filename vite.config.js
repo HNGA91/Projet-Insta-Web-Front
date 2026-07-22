@@ -3,8 +3,8 @@ import react from "@vitejs/plugin-react";
 import fs from "fs";
 
 // Chemins des certificats mkcert utilisés en développement local
-const keyPath = "C:/Users/manut/Projets/React_Native/MyprojectMobileFullstack/MyprojectBackend/localhost-key.pem";
-const certPath = "C:/Users/manut/Projets/React_Native/MyprojectMobileFullstack/MyprojectBackend/localhost.pem";
+const keyPath = "C:/Users/manut/Projets/NodeJS/Tech-City-Backend/localhost-key.pem";
+const certPath = "C:/Users/manut/Projets/NodeJS/Tech-City-Backend/localhost.pem";
 
 // On active le HTTPS uniquement si les certificats existent sur la machine
 // (en local). Sur GitLab CI ou en build de production, ces fichiers n'existent

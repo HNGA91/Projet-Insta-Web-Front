@@ -156,6 +156,8 @@ mkcert localhost
 ### Frontend — `.env`
 ```env
 VITE_SERVER_URL=https://localhost:3000
+
+VITE_STRIPE_PUBLIC_KEY=pk_test_...
 ```
 
 ---
